@@ -2,6 +2,7 @@
 
 This program is look like a TV sleep timer, but it’s a bit of better. :)
 
+![2015-10-22_21-09-24.png](https://bitbucket.org/repo/nRG884/images/322804989-2015-10-22_21-09-24.png)
 
 You can program the time management logic using two ways:  
 
@@ -32,6 +33,8 @@ This program was developed in Microsoft Visual C++ 2013 Express IDE (non-CLR C++
 ## О программе ##
 
 По своему основному предназначению программа схожа с одноимённой функцией телевизора, но слегка лучше неё. ;)
+
+![2015-10-22_21-09-39.png](https://bitbucket.org/repo/nRG884/images/1800622463-2015-10-22_21-09-39.png)
 
 Управлять временем отключения Вы можете двумя способами:  
 
