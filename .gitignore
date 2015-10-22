@@ -1,0 +1,13 @@
+/Debug
+/SleepTimer.sdf
+/Release
+/SleepTimer/Debug
+/SleepTimer/Release
+
+/SleepTimer.opensdf
+
+/SleepTimer.v12.suo
+/ipch
+
+/SleepTimer/*.user
+/SleepTimer/*.aps
