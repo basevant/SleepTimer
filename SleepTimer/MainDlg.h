@@ -6,6 +6,10 @@
 
 #include "ResourceManager.h"
 
+constexpr auto SLEEP_TIMER_REG_KEY = L"Software\\SleepTimer";
+constexpr auto SLEEP_TIMER_REG_PARAM_WND_X_POS = L"X";
+constexpr auto SLEEP_TIMER_REG_PARAM_WND_Y_POS = L"Y";
+
 class CMainDlg :
 	public CDialogImpl<CMainDlg>,
 	public CUpdateUI<CMainDlg>,
@@ -24,6 +28,7 @@ public:
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_TIMER, OnTimer)
+        MESSAGE_HANDLER(WM_MOVE, OnMove)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
 		COMMAND_ID_HANDLER(IDC_RAD_OFF_AT, OnTimerModeAtClick)
 		COMMAND_ID_HANDLER(IDC_RAD_OFF_IN, OnTimerModeInClick)
@@ -61,6 +66,13 @@ public:
 		const LPARAM,
 		const BOOL&
 		) throw();
+
+    LRESULT OnMove(
+        const UINT,
+        const WPARAM,
+        const LPARAM lParam,
+        const BOOL&
+    ) throw();
 
 	/*									*/
 	/*									*/
@@ -186,4 +198,19 @@ private:
 		) const throw();
 
 	static BOOL IsWindows8(void) throw();
+
+    static BOOL GetWindowTopLeftPositionFromRegistry(POINTS& refTopLeftPoint) noexcept;
+
+    static BOOL ReadDwordRegValue(
+        LPCWSTR lpValueName,
+        DWORD& refValue
+    ) noexcept;
+
+    BOOL MoveWindowPositionToSavedPosition(
+        POINTS topLeftWindowPointFromRegistry
+    ) noexcept;
+
+    BOOL SaveWindowPosition(
+        POINTS currentWindowPosition
+    ) noexcept;
 };

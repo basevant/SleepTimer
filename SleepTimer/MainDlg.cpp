@@ -47,8 +47,19 @@ LRESULT CMainDlg::OnInitDialog(
 	const BOOL&
 	) throw()
 {
-	// center the dialog on the screen
-	CenterWindow();
+    POINTS topLeftWindowPointFromRegistry;
+    ZeroMemory(&topLeftWindowPointFromRegistry, sizeof(POINTS));
+
+    const bool windowHasBeenMoved = (
+        (TRUE == GetWindowTopLeftPositionFromRegistry(topLeftWindowPointFromRegistry))
+        && (TRUE == MoveWindowPositionToSavedPosition(topLeftWindowPointFromRegistry))
+        );
+
+    if (!windowHasBeenMoved)
+    {
+        // center the dialog on the screen
+        CenterWindow();
+    }
 
 	// set icons
 	HICON hIcon = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON));
@@ -169,6 +180,18 @@ LRESULT CMainDlg::OnTimer(
 	}
 
 	return 0;
+}
+
+LRESULT CMainDlg::OnMove(
+    const UINT,
+    const WPARAM,
+    const LPARAM lParam,
+    const BOOL&
+) noexcept
+{
+    SaveWindowPosition(MAKEPOINTS(lParam));
+
+    return 0;
 }
 
 LRESULT CMainDlg::OnBtnTimerClick(
@@ -455,10 +478,10 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 
 		ShowWindow(SW_SHOWDEFAULT);
 
-		CString cautionShutdownMessage;
+		CStringW cautionShutdownMessage;
 		cautionShutdownMessage.Format(
 			CResourceManager::LoadStringFromResource(IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN),
-			powerOffTypeMessage
+			static_cast<LPCWSTR>(powerOffTypeMessage)
 			);
 
 		const int messageBoxResult = MessageBox(
@@ -655,4 +678,184 @@ BOOL CMainDlg::IsWindows8(void) throw()
 		(osvi.dwMajorVersion >= 6)
 		&& (osvi.dwMinorVersion >= 2)
 		);
+}
+
+BOOL CMainDlg::GetWindowTopLeftPositionFromRegistry(POINTS& topLeftPoint) noexcept
+{
+    DWORD dwX;
+    if (TRUE != ReadDwordRegValue(SLEEP_TIMER_REG_PARAM_WND_X_POS, dwX))
+    {
+        return FALSE;
+    }
+
+    DWORD dwY;
+    if (TRUE != ReadDwordRegValue(SLEEP_TIMER_REG_PARAM_WND_Y_POS, dwY))
+    {
+        return FALSE;
+    }
+
+    SecureZeroMemory(&topLeftPoint, sizeof(POINTS));
+
+    topLeftPoint.x = (SHORT)dwX;
+    topLeftPoint.y = (SHORT)dwY;
+
+    return TRUE;
+}
+
+BOOL CMainDlg::ReadDwordRegValue(
+    LPCWSTR lpValueName,
+    DWORD& refValue
+) noexcept
+{
+    HKEY hKey;
+
+    LSTATUS lStatus = RegOpenKeyExW(
+        HKEY_CURRENT_USER,
+        SLEEP_TIMER_REG_KEY,
+        0,
+        KEY_READ,
+        &hKey
+    );
+
+    if (lStatus != ERROR_SUCCESS)
+    {
+        return FALSE;
+    }
+
+    DWORD dwDataSize = 0;
+
+    lStatus = RegQueryValueExW(
+        hKey,
+        lpValueName,
+        NULL,
+        NULL,
+        NULL,
+        &dwDataSize
+    );
+
+    if (lStatus != ERROR_SUCCESS)
+    {
+        RegCloseKey(hKey);
+        hKey = NULL;
+
+        return FALSE;
+    }
+
+    DWORD regValue;
+
+    lStatus = RegQueryValueExW(
+        hKey,
+        lpValueName,
+        NULL,
+        NULL,
+        (LPBYTE)&regValue,
+        &dwDataSize
+    );
+
+    if (lStatus != ERROR_SUCCESS)
+    {
+        RegCloseKey(hKey);
+        hKey = NULL;
+
+        return FALSE;
+    }
+
+    refValue = regValue;
+
+    RegCloseKey(hKey);
+    hKey = NULL;
+
+    return TRUE;
+}
+
+BOOL CMainDlg::MoveWindowPositionToSavedPosition(
+    POINTS topLeftWindowPointFromRegistry
+) noexcept
+{
+    return SetWindowPos(
+        NULL,
+        topLeftWindowPointFromRegistry.x,
+        topLeftWindowPointFromRegistry.y,
+        -1,
+        -1,
+        SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE
+    );
+}
+
+BOOL CMainDlg::SaveWindowPosition(
+    POINTS currentWindowPosition
+) noexcept
+{
+    HKEY hKey;
+
+    LSTATUS lStatus = RegOpenKeyExW(
+        HKEY_CURRENT_USER,
+        SLEEP_TIMER_REG_KEY,
+        0,
+        KEY_WRITE,
+        &hKey
+    );
+
+    if (lStatus != ERROR_SUCCESS)
+    {
+        if (lStatus == ERROR_FILE_NOT_FOUND)
+        {
+            lStatus = RegCreateKey(
+                HKEY_CURRENT_USER,
+                SLEEP_TIMER_REG_KEY,
+                &hKey
+            );
+
+            if (lStatus != ERROR_SUCCESS)
+            {
+                return FALSE;
+            }
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+
+    const DWORD dwPosX = (DWORD)currentWindowPosition.x;
+    const DWORD dwPosY = (DWORD)currentWindowPosition.y;
+
+    lStatus = RegSetValueExW(
+        hKey,
+        SLEEP_TIMER_REG_PARAM_WND_X_POS,
+        0,
+        REG_DWORD,
+        (const BYTE*)&dwPosX,
+        sizeof(dwPosX)
+    );
+
+    if (lStatus != ERROR_SUCCESS)
+    {
+        RegCloseKey(hKey);
+        hKey = NULL;
+
+        return FALSE;
+    }
+
+    lStatus = RegSetValueExW(
+        hKey,
+        SLEEP_TIMER_REG_PARAM_WND_Y_POS,
+        0,
+        REG_DWORD,
+        (const BYTE*)&dwPosY,
+        sizeof(dwPosY)
+    );
+
+    if (lStatus != ERROR_SUCCESS)
+    {
+        RegCloseKey(hKey);
+        hKey = NULL;
+
+        return FALSE;
+    }
+
+    RegCloseKey(hKey);
+    hKey = NULL;
+
+    return TRUE;
 }
