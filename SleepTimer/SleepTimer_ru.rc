@@ -35,11 +35,11 @@ BEGIN
     CONTROL         "Выключить компьютер в",IDC_RAD_OFF_AT,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,14,38,101,14
     COMBOBOX        IDC_CMB_AT_HRS,136,38,31,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_CMB_AT_MINS,186,38,31,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Выключить",IDC_RAD_PWR_OFF,"Button",BS_AUTORADIOBUTTON | WS_GROUP,14,78,116,14
+    CONTROL         "Завершение работы",IDC_RAD_PWR_OFF,"Button",BS_AUTORADIOBUTTON | WS_GROUP,14,78,116,14
     CONTROL         "Гибернация",IDC_RAD_PWR_HIBERNATE,"Button",BS_AUTORADIOBUTTON,14,95,116,14
     CONTROL         "Спящий режим",IDC_RAD_PWR_SLEEP,"Button",BS_AUTORADIOBUTTON,14,112,116,14
     DEFPUSHBUTTON   "Таймер остановлен, запустить?",IDC_BTN_START,7,138,239,27
-    PUSHBUTTON      "Закрыть программу",IDCANCEL,7,171,239,27
+    PUSHBUTTON      "Закрыть",IDCANCEL,7,171,239,27
     GROUPBOX        "Тип таймера",IDC_GRP_TIMER_TYPE,7,7,238,53
     CONTROL         "ч ",IDC_LBL_AT,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,169,40,13,10,WS_EX_TRANSPARENT
     LTEXT           "мин",IDC_LBL_AT_MINS,219,40,13,8
@@ -91,8 +91,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,0,0,2
+ PRODUCTVERSION 1,0,0,2
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -109,12 +109,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "basevant@live.ru"
             VALUE "FileDescription", "SleepTimer"
-            VALUE "FileVersion", "1.0.0.0"
+            VALUE "FileVersion", "1.0.0.2"
             VALUE "InternalName", "SleepTimer"
             VALUE "LegalCopyright", "Copyright 2014 © Anton Basevich"
             VALUE "OriginalFilename", "SleepTimer.exe"
             VALUE "ProductName", "Sleep Timer"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", "1.0.0.2"
         END
     END
     BLOCK "VarFileInfo"
@@ -135,6 +135,17 @@ IDR_MAINFRAME           ICON                    "res\\SleepTimer.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_MAINDLG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
@@ -149,15 +160,15 @@ BEGIN
                             "Я планирую %s примерно через минуту. Отменить?"
     IDS_PWR_SHUTDOWN        "выключить Ваш компьютер"
     IDS_PWR_HIBERNATE       "отправить Ваш компьютер в режим гибернации"
-    IDS_PWR_SLEEP           "отправить Ваш компьютер в сон"
+    IDS_PWR_SLEEP           "отправить Ваш компьютер в спящий режим"
     IDS_CAUTION_CONFIRM_EXIT 
-                            "Программа настроена на автоматическое отключение питания.\nОтменить запланированное выключение и закрыть программу?"
-    IDS_SHUTDOWN_AT_TEMPLATE "%s в:"
+                            "Отменить запланированное выключение и закрыть программу?"
     IDS_PWR_OPT_SHUTDOWN    "Выключить"
     IDS_PWR_OPT_HIBERNATE   "Гибернация"
     IDS_PWR_OPT_SLEEP       "Сон"
-    IDS_CAUTION_MESSAGE_SHUTDOWN_BY_ZEROS       "Что, прямо сейчас? :)"
-    IDS_ERROR_UNABLE_TO_ADJUST_SHUTDOWN_PRIVILEGES       "К сожалению, не удалось узнать - разрешено ли Вашей учётной записи выключать компьютер. :(\nПопробуйте запустить программу от имени Администратора."
+    IDS_CAUTION_MESSAGE_SHUTDOWN_BY_ZEROS "Отключить питание сейчас?"
+    IDS_ERROR_UNABLE_TO_ADJUST_SHUTDOWN_PRIVILEGES 
+                            "Не удалось получить доступ к управлению электропитанием.\nПопробуйте запустить программу от имени Администратора."
 END
 
 #endif    // Russian (Russia) resources

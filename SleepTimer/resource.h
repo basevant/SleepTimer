@@ -13,7 +13,6 @@
 #define IDS_PWR_HIBERNATE               135
 #define IDS_PWR_SLEEP                   136
 #define IDS_CAUTION_CONFIRM_EXIT        137
-#define IDS_SHUTDOWN_AT_TEMPLATE        138
 #define IDS_PWR_OPT_SHUTDOWN            139
 #define IDS_PWR_OPT_HIBERNATE           140
 #define IDS_PWR_OPT_SLEEP               141

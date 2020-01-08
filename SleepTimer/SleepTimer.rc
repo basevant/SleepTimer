@@ -13,11 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// Russian (Russia) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -26,30 +26,30 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDD_MAINDLG DIALOGEX 0, 0, 253, 219
 STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
-CAPTION "Sleep Timer"
+CAPTION "Таймер сна"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "Power Off PC in",IDC_RAD_OFF_IN,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,14,23,116,14
+    CONTROL         "Выключить компьютер через",IDC_RAD_OFF_IN,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,14,23,116,14
     COMBOBOX        IDC_CMB_IN_HRS,136,21,31,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_CMB_IN_MINS,185,21,31,29,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Power Off PC at",IDC_RAD_OFF_AT,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,14,38,101,14
+    CONTROL         "Выключить компьютер в",IDC_RAD_OFF_AT,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,14,38,101,14
     COMBOBOX        IDC_CMB_AT_HRS,136,38,31,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_CMB_AT_MINS,186,38,31,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Shutdown",IDC_RAD_PWR_OFF,"Button",BS_AUTORADIOBUTTON | WS_GROUP,14,78,116,14
-    CONTROL         "Hibernation",IDC_RAD_PWR_HIBERNATE,"Button",BS_AUTORADIOBUTTON,14,95,116,14
-    CONTROL         "Sleep Mode",IDC_RAD_PWR_SLEEP,"Button",BS_AUTORADIOBUTTON,14,112,116,14
-    DEFPUSHBUTTON   "Timer is inactive now, click to run it",IDC_BTN_START,7,138,239,27
-    PUSHBUTTON      "Close",IDCANCEL,7,171,239,27
-    GROUPBOX        "Timer type",IDC_GRP_TIMER_TYPE,7,7,238,53
-    CONTROL         "h ",IDC_LBL_AT,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,169,40,13,10,WS_EX_TRANSPARENT
-    LTEXT           "m",IDC_LBL_AT_MINS,219,40,13,8
-    CONTROL         "h ",IDC_LBL_IN_HRS,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,170,23,13,8,WS_EX_TRANSPARENT
-    LTEXT           "m",IDC_LBL_IN_MINS,219,23,13,8
-    GROUPBOX        "Power Off type",IDC_GRP_PWR_OPTIONS,7,67,123,64
-    GROUPBOX        "Status",IDC_GRP_STATUS,136,67,109,64
-    LTEXT           "Remaining:",IDC_STATIC,142,116,36,8
-    LTEXT           "Power Off at:",IDC_LBL_OFF_AT_LBL,142,99,53,8
-    LTEXT           "Now is:",IDC_STATIC,142,82,56,8
+    CONTROL         "Завершение работы",IDC_RAD_PWR_OFF,"Button",BS_AUTORADIOBUTTON | WS_GROUP,14,78,116,14
+    CONTROL         "Гибернация",IDC_RAD_PWR_HIBERNATE,"Button",BS_AUTORADIOBUTTON,14,95,116,14
+    CONTROL         "Спящий режим",IDC_RAD_PWR_SLEEP,"Button",BS_AUTORADIOBUTTON,14,112,116,14
+    DEFPUSHBUTTON   "Таймер остановлен, запустить?",IDC_BTN_START,7,138,239,27
+    PUSHBUTTON      "Закрыть",IDCANCEL,7,171,239,27
+    GROUPBOX        "Тип таймера",IDC_GRP_TIMER_TYPE,7,7,238,53
+    CONTROL         "ч ",IDC_LBL_AT,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,169,40,13,10,WS_EX_TRANSPARENT
+    LTEXT           "мин",IDC_LBL_AT_MINS,219,40,13,8
+    CONTROL         "ч ",IDC_LBL_IN_HRS,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,170,23,13,8,WS_EX_TRANSPARENT
+    LTEXT           "мин",IDC_LBL_IN_MINS,219,23,13,8
+    GROUPBOX        "Управление электропитанием",IDC_GRP_PWR_OPTIONS,7,67,123,64
+    GROUPBOX        "Статус",IDC_GRP_STATUS,136,67,109,64
+    LTEXT           "Осталось:",IDC_STATIC,142,116,36,8
+    LTEXT           "Отключение в:",IDC_LBL_OFF_AT_LBL,142,99,53,8
+    LTEXT           "Текущее время:",IDC_STATIC,142,82,56,8
     LTEXT           "00:00:00",IDC_LBL_TIME,209,82,30,8
     LTEXT           "?",IDC_LBL_OFF_AT,209,99,30,8
     LTEXT           "?",IDC_LBL_OFF_ELPSD,209,116,30,8
@@ -91,8 +91,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,0,0,2
+ PRODUCTVERSION 1,0,0,2
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -109,12 +109,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "basevant@live.ru"
             VALUE "FileDescription", "SleepTimer"
-            VALUE "FileVersion", "1.0.0.0"
+            VALUE "FileVersion", "1.0.0.2"
             VALUE "InternalName", "SleepTimer"
             VALUE "LegalCopyright", "Copyright 2014 © Anton Basevich"
             VALUE "OriginalFilename", "SleepTimer.exe"
             VALUE "ProductName", "Sleep Timer"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", "1.0.0.2"
         END
     END
     BLOCK "VarFileInfo"
@@ -135,41 +135,52 @@ IDR_MAINFRAME           ICON                    "res\\SleepTimer.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_MAINDLG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "Sleep timer"
-    IDS_TIMER_IS_STOPPED_SHOULD_I_START_IT "Timer is stopped now, click to run it"
-    IDS_TIMER_IS_TICKING_SHOULD_I_STOP_IT "Timer is ticking now, click to stop it"
+    IDR_MAINFRAME           "Таймер сна"
+    IDS_TIMER_IS_STOPPED_SHOULD_I_START_IT "Таймер остановлен, запустить?"
+    IDS_TIMER_IS_TICKING_SHOULD_I_STOP_IT "Таймер запущен, остановить?"
     IDS_EMPTY_TIME          "?"
     IDS_TIMER_MASK          "%H:%M:%S"
     IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN 
-                            "I am going to %s your PC in one minute. Cancel it?"
-    IDS_PWR_SHUTDOWN        "shutdown"
-    IDS_PWR_HIBERNATE       "hibernate"
-    IDS_PWR_SLEEP           "send to the Sleep Mode"
+                            "Я планирую %s примерно через минуту. Отменить?"
+    IDS_PWR_SHUTDOWN        "выключить Ваш компьютер"
+    IDS_PWR_HIBERNATE       "отправить Ваш компьютер в режим гибернации"
+    IDS_PWR_SLEEP           "отправить Ваш компьютер в спящий режим"
     IDS_CAUTION_CONFIRM_EXIT 
-                            "Timer is programmed to Power Off your PC.\nCancel Power Off and exit?"
-    IDS_SHUTDOWN_AT_TEMPLATE "%s в:"
-    IDS_PWR_OPT_SHUTDOWN    "Shutdown"
-    IDS_PWR_OPT_HIBERNATE   "Hibernate"
-    IDS_PWR_OPT_SLEEP       "Sleep"
-    IDS_CAUTION_MESSAGE_SHUTDOWN_BY_ZEROS       "So quick? :)"
-    IDS_ERROR_UNABLE_TO_ADJUST_SHUTDOWN_PRIVILEGES       "Sorry, unable to confirm your account is able to Power Off PC. :(\nPlease, try to run me as Administrator."
+                            "Отменить запланированное выключение и закрыть программу?"
+    IDS_PWR_OPT_SHUTDOWN    "Выключить"
+    IDS_PWR_OPT_HIBERNATE   "Гибернация"
+    IDS_PWR_OPT_SLEEP       "Сон"
+    IDS_CAUTION_MESSAGE_SHUTDOWN_BY_ZEROS "Отключить питание сейчас?"
+    IDS_ERROR_UNABLE_TO_ADJUST_SHUTDOWN_PRIVILEGES 
+                            "Не удалось получить доступ к управлению электропитанием.\nПопробуйте запустить программу от имени Администратора."
 END
 
-#endif    // English (United States) resources
+#endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// Russian (Russia) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -195,7 +206,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (United States) resources
+#endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
