@@ -1,6 +1,8 @@
 /Debug
 /SleepTimer.sdf
+/Release
 /SleepTimer/Debug
+/SleepTimer/Release
 
 /SleepTimer.opensdf
 
@@ -9,3 +11,6 @@
 
 /SleepTimer/*.user
 /SleepTimer/*.aps
+/.vs/SleepTimer/v15
+/*.user
+/.vs
