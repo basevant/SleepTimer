@@ -817,8 +817,20 @@ BOOL CMainDlg::SaveWindowPosition(
         }
     }
 
-    const DWORD dwPosX = (DWORD)currentWindowPosition.x;
-    const DWORD dwPosY = (DWORD)currentWindowPosition.y;
+    const DWORD windowCaptionAreaHeight = static_cast<DWORD>(GetSystemMetrics(SM_CYCAPTION));
+    const DWORD verticalBorderWidth = static_cast<DWORD>(GetSystemMetrics(SM_CYFIXEDFRAME));
+    const DWORD horizontalBorderHeight = static_cast<DWORD>(GetSystemMetrics(SM_CXFIXEDFRAME));
+
+    const DWORD dwPosX = (
+        static_cast<DWORD>(currentWindowPosition.x)
+        - verticalBorderWidth
+        );
+
+    const DWORD dwPosY = (
+        static_cast<DWORD>(currentWindowPosition.y)
+        - windowCaptionAreaHeight
+        - horizontalBorderHeight
+        );
 
     lStatus = RegSetValueExW(
         hKey,
