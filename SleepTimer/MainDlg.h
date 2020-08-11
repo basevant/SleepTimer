@@ -143,9 +143,6 @@ private:
 		PowerOffTypeHibernate = 2
 	};
 
-	std::map<unsigned short, unsigned short> m_comboIdxToHour;
-	std::map<unsigned short, unsigned short> m_comboIdxToMinutes;
-
 	bool m_isTicking;
 
     CTime m_shutDownAt;
@@ -170,9 +167,16 @@ private:
 
 	void FillCombo(
 		const int comboId,
-		const std::map<unsigned short, unsigned short>& data,
+		const std::vector<unsigned short>& comboValues,
 		const unsigned short selectedItemIdx
-		) const throw();
+		) const;
+
+	void FillHoursCombo(
+		const int comboId,
+		const unsigned short selectedIndex
+	) const;
+
+	void FillMinutesCombo(const int comboId) const;
 
 	void ShowCurrentTime(void) const throw();
 

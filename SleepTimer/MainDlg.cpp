@@ -4,27 +4,10 @@
 
 #include "stdafx.h"
 #include "resource.h"
-
 #include "MainDlg.h"
 
 CMainDlg::CMainDlg()
 {
-	//	fill the Hours list
-	//
-
-	for (unsigned short i = 0; i <= 24; i++)
-	{
-		m_comboIdxToHour.insert({ i, i });
-	}
-
-	//	fill the Minutes list
-	//
-
-	for (unsigned short i = 0; i < 12; i++)
-	{
-		m_comboIdxToMinutes.insert({ i, i * 5 });
-	}
-
 	m_isTicking = false;
 	m_shutDownByZeros = false;
 	m_shutDownInSecondsCountdown = 0;
@@ -80,11 +63,11 @@ LRESULT CMainDlg::OnInitDialog(
 	//	Custom UI initialization
 	//
 
-	FillCombo(IDC_CMB_AT_HRS, m_comboIdxToHour, 1);
-	FillCombo(IDC_CMB_AT_MINS, m_comboIdxToMinutes, 0);
+	FillHoursCombo(IDC_CMB_AT_HRS, 0);
+	FillMinutesCombo(IDC_CMB_AT_MINS);
 
-	FillCombo(IDC_CMB_IN_HRS, m_comboIdxToHour, 1);
-	FillCombo(IDC_CMB_IN_MINS, m_comboIdxToMinutes, 0);
+	FillHoursCombo(IDC_CMB_IN_HRS, 1);
+	FillMinutesCombo(IDC_CMB_IN_MINS);
 
 	SendDlgItemMessage(IDC_RAD_OFF_IN, BM_CLICK);
 
@@ -234,10 +217,10 @@ LRESULT CMainDlg::OnBtnTimerClick(
 		if (TRUE == RadioIsChecked(IDC_RAD_OFF_IN))
 		{
 			const CComboBox hoursCombo = GetDlgItem(IDC_CMB_IN_HRS);
-			const unsigned short powerOffHours = m_comboIdxToHour[static_cast<unsigned short>(hoursCombo.GetCurSel())];
+			const unsigned short powerOffHours = static_cast<byte>(hoursCombo.GetItemData(hoursCombo.GetCurSel()));
 
 			const CComboBox minutesCombo = GetDlgItem(IDC_CMB_IN_MINS);
-			const unsigned short powerOffMinutes = m_comboIdxToMinutes[static_cast<unsigned short>(minutesCombo.GetCurSel())];
+			const unsigned short powerOffMinutes = static_cast<byte>(minutesCombo.GetItemData(minutesCombo.GetCurSel()));
 
 			m_shutDownByZeros = (
 				(0 == powerOffHours)
@@ -250,10 +233,10 @@ LRESULT CMainDlg::OnBtnTimerClick(
 		else
 		{
 			const CComboBox hoursCombo = GetDlgItem(IDC_CMB_AT_HRS);
-			m_shutDownAtHours = static_cast<byte>(m_comboIdxToHour[static_cast<unsigned short>(hoursCombo.GetCurSel())]);
+			m_shutDownAtHours = static_cast<byte>(hoursCombo.GetItemData(hoursCombo.GetCurSel()));
 
 			const CComboBox minutesCombo = GetDlgItem(IDC_CMB_AT_MINS);
-			m_shutDownAtMinutes = static_cast<byte>(m_comboIdxToMinutes[static_cast<unsigned short>(minutesCombo.GetCurSel())]);
+			m_shutDownAtMinutes = static_cast<byte>(minutesCombo.GetItemData(minutesCombo.GetCurSel()));
 
 			m_shutDownByZeros = (
 				(0 == m_shutDownAtHours)
@@ -377,24 +360,52 @@ void CMainDlg::SetPowerOffTypeMode(
 
 void CMainDlg::FillCombo(
 	const int comboId,
-	const std::map<unsigned short, unsigned short>& data,
+	const std::vector<unsigned short>& comboValues,
 	const unsigned short selectedItemIdx
-	) const throw()
+	) const
 {
-	CComboBox someCombo = GetDlgItem(comboId);
+	auto someCombo = static_cast<CComboBox>(GetDlgItem(comboId));
 
-	for (const auto& p : data)
+	for (const auto& p : comboValues)
 	{
 		CString comboText;
-		comboText.Format(L"%s%d", p.second < 10 ? L"0" : L"", p.second);
+		comboText.Format(L"%s%d", p < 10 ? L"0" : L"", p);
 
-		someCombo.AddString(comboText);
+		const auto newStringIdx = someCombo.AddString(comboText);
+		someCombo.SetItemData(newStringIdx, p);
 	}
 
-	if (data.size() > selectedItemIdx)
+	if (comboValues.size() > selectedItemIdx)
 	{
 		someCombo.SetCurSel(selectedItemIdx);
 	}
+}
+
+void CMainDlg::FillHoursCombo(
+	const int comboId,
+	const unsigned short selectedIndex
+    ) const
+{
+	std::vector<unsigned short> comboHoursValues;
+
+	for (unsigned short i = 0; i <= 23; i++)
+	{
+		comboHoursValues.push_back(i);
+	}
+
+	FillCombo(comboId, comboHoursValues, selectedIndex);
+}
+
+void CMainDlg::FillMinutesCombo(const int comboId) const
+{
+	std::vector<unsigned short> comboMinutesValues;
+
+	for (unsigned short i = 0; i < 12; i++)
+	{
+		comboMinutesValues.push_back(i * 5);
+	}
+
+	FillCombo(comboId, comboMinutesValues, 0);
 }
 
 void CMainDlg::ShowCurrentTime(void) const throw()
