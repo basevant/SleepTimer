@@ -216,11 +216,8 @@ LRESULT CMainDlg::OnBtnTimerClick(
 	{
 		if (TRUE == RadioIsChecked(IDC_RAD_OFF_IN))
 		{
-			const CComboBox hoursCombo = GetDlgItem(IDC_CMB_IN_HRS);
-			const unsigned short powerOffHours = static_cast<byte>(hoursCombo.GetItemData(hoursCombo.GetCurSel()));
-
-			const CComboBox minutesCombo = GetDlgItem(IDC_CMB_IN_MINS);
-			const unsigned short powerOffMinutes = static_cast<byte>(minutesCombo.GetItemData(minutesCombo.GetCurSel()));
+			const unsigned short powerOffHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
+			const unsigned short powerOffMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
 
 			m_shutDownByZeros = (
 				(0 == powerOffHours)
@@ -232,11 +229,8 @@ LRESULT CMainDlg::OnBtnTimerClick(
 		}
 		else
 		{
-			const CComboBox hoursCombo = GetDlgItem(IDC_CMB_AT_HRS);
-			m_shutDownAtHours = static_cast<byte>(hoursCombo.GetItemData(hoursCombo.GetCurSel()));
-
-			const CComboBox minutesCombo = GetDlgItem(IDC_CMB_AT_MINS);
-			m_shutDownAtMinutes = static_cast<byte>(minutesCombo.GetItemData(minutesCombo.GetCurSel()));
+			m_shutDownAtHours = GetComboBoxSelectedItemData(IDC_CMB_AT_HRS);
+			m_shutDownAtMinutes = GetComboBoxSelectedItemData(IDC_CMB_AT_MINS);
 
 			m_shutDownByZeros = (
 				(0 == m_shutDownAtHours)
@@ -916,4 +910,10 @@ BOOL CMainDlg::SaveWindowPosition(
     hKey = NULL;
 
     return TRUE;
+}
+
+byte CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const
+{
+    const auto someComboBox = static_cast<CComboBox>(GetDlgItem(comboBoxId));
+    return static_cast<byte>(someComboBox.GetItemData(someComboBox.GetCurSel()));
 }

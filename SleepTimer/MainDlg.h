@@ -227,4 +227,6 @@ private:
     BOOL SaveWindowPosition(
         POINTS currentWindowPosition
     ) noexcept;
+
+    byte GetComboBoxSelectedItemData(const int comboBoxId) const;
 };
