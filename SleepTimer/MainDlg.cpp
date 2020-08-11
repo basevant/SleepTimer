@@ -27,6 +27,8 @@ CMainDlg::CMainDlg()
 
 	m_isTicking = false;
 	m_shutDownByZeros = false;
+	m_shutDownInSecondsCountdown = 0;
+	m_isCautionMessageAlreadyShown = false;
 }
 
 BOOL CMainDlg::PreTranslateMessage(MSG* pMsg)
@@ -242,28 +244,29 @@ LRESULT CMainDlg::OnBtnTimerClick(
 				&& (0 == powerOffMinutes)
 				);
 
+			m_shutDownInSecondsCountdown = powerOffHours * 3600 + powerOffMinutes * 60;
 			m_shutDownAt = CTime::GetCurrentTime() + CTimeSpan(0, powerOffHours, powerOffMinutes, 0);
 		}
 		else
 		{
 			const CComboBox hoursCombo = GetDlgItem(IDC_CMB_AT_HRS);
-			const unsigned short powerOffHours = m_comboIdxToHour[static_cast<unsigned short>(hoursCombo.GetCurSel())];
+			m_shutDownAtHours = static_cast<byte>(m_comboIdxToHour[static_cast<unsigned short>(hoursCombo.GetCurSel())]);
 
 			const CComboBox minutesCombo = GetDlgItem(IDC_CMB_AT_MINS);
-			const unsigned short powerOffMinutes = m_comboIdxToMinutes[static_cast<unsigned short>(minutesCombo.GetCurSel())];
+			m_shutDownAtMinutes = static_cast<byte>(m_comboIdxToMinutes[static_cast<unsigned short>(minutesCombo.GetCurSel())]);
 
 			m_shutDownByZeros = (
-				(0 == powerOffHours)
-				&& (0 == powerOffMinutes)
+				(0 == m_shutDownAtHours)
+				&& (0 == m_shutDownAtMinutes)
 				);
 
 			const CTime currentTime = CTime::GetCurrentTime();
 
-			if (powerOffHours < currentTime.GetHour())
+			if (m_shutDownAtHours < currentTime.GetHour())
 			{
 				const CTime midNight = CTime(currentTime.GetYear(), currentTime.GetMonth(), currentTime.GetDay(), 23, 59, 59);
 				const CTime tomorrow = midNight + CTimeSpan(0, 0, 0, 1);
-				m_shutDownAt = tomorrow + CTimeSpan(0, powerOffHours, powerOffMinutes, 0);
+				m_shutDownAt = tomorrow + CTimeSpan(0, m_shutDownAtHours, m_shutDownAtMinutes, 0);
 			}
 			else
 			{
@@ -271,8 +274,8 @@ LRESULT CMainDlg::OnBtnTimerClick(
 					currentTime.GetYear(),
 					currentTime.GetMonth(),
 					currentTime.GetDay(),
-					powerOffHours,
-					powerOffMinutes,
+					m_shutDownAtHours,
+					m_shutDownAtMinutes,
 					0
 					);
 			}
@@ -297,6 +300,8 @@ LRESULT CMainDlg::OnBtnTimerClick(
 		GetDlgItem(IDC_BTN_START).SetWindowTextW(
 			CResourceManager::LoadStringFromResource(IDS_TIMER_IS_TICKING_SHOULD_I_STOP_IT)
 			);
+
+		m_isCautionMessageAlreadyShown = false;
 	}
 
 	m_isTicking = !m_isTicking;
@@ -314,13 +319,15 @@ void CMainDlg::CloseDialog(
 
 void CMainDlg::SetTimerTypeMode(
 	const TimerType& timerType
-	) const throw()
+	) throw()
 {
 	const BOOL shouldSetTimerTypeIn = (TimerTypeIn == timerType ? TRUE : FALSE);
 
 	EnableOrDisableShutdownAtControls(!shouldSetTimerTypeIn);
 
 	EnableOrDisableShutdownInControls(shouldSetTimerTypeIn);
+
+	m_timerType = timerType;
 }
 
 void CMainDlg::SetPowerOffTypeMode(
@@ -397,11 +404,16 @@ void CMainDlg::ShowCurrentTime(void) const throw()
 		);
 }
 
-void CMainDlg::ProcessCountDown(void) const throw()
+void CMainDlg::ProcessCountDown(void) throw()
 {
 	if (!m_isTicking)
 	{
 		return;
+	}
+
+	if (m_timerType == TimerTypeIn)
+	{
+		m_shutDownInSecondsCountdown--;
 	}
 
 	ShowCountDown();
@@ -433,9 +445,29 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 		return;
 	}
 
-	const bool currentTimeIsCautionTime = (
-		(m_shutDownAt - CTime::GetCurrentTime()) == CTimeSpan(0, 0, 1, 0)
-		);
+	bool currentTimeIsCautionTime;
+	bool currentTimeIsShutdownTime;
+
+    const auto currentTime = CTime::GetCurrentTime();
+
+	if (m_timerType == TimerTypeAt)
+	{
+		const auto currentTimePlusOneMinute = currentTime + CTimeSpan(0, 0, 1, 0);
+
+		currentTimeIsCautionTime = (
+			currentTimePlusOneMinute.GetHour() == m_shutDownAtHours
+			&& currentTimePlusOneMinute.GetMinute() == m_shutDownAtMinutes
+			);
+
+		currentTimeIsShutdownTime = (
+			m_shutDownAt <= CTime::GetCurrentTime()
+			);
+	}
+	else
+	{
+		currentTimeIsCautionTime = m_shutDownInSecondsCountdown <= 60;
+		currentTimeIsShutdownTime = m_shutDownInSecondsCountdown <= 0;
+	}
 
 	if (currentTimeIsCautionTime)
 	{
@@ -443,26 +475,33 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 		//
 		CString powerOffTypeMessage;
 
-		switch (currentPowerOffType)
-		{
-		case PowerOffTypeHibernate:
-		{
-			powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_HIBERNATE);
-		}
-			break;
+        switch (currentPowerOffType)
+        {
+            case PowerOffTypeHibernate:
+            {
+                powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_HIBERNATE);
+            }
+            break;
 
-		case PowerOffTypeShutdown:
-		{
-			powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_SHUTDOWN);
-		}
-			break;
+            case PowerOffTypeShutdown:
+            {
+                powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_SHUTDOWN);
+            }
+            break;
 
-		case PowerOffTypeSuspend:
+            case PowerOffTypeSuspend:
+            {
+                powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_SLEEP);
+            }
+            break;
+        }
+
+		if (m_isCautionMessageAlreadyShown)
 		{
-			powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_SLEEP);
+			return;
 		}
-			break;
-		}
+
+		m_isCautionMessageAlreadyShown = true;
 
 		const HWND hWndForegroundWindow = GetForegroundWindow();
 		if (
@@ -504,10 +543,6 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 		return;		//	if (currentTimeIsCautionTime)
 	}
 
-	const bool currentTimeIsShutdownTime = (
-		m_shutDownAt <= CTime::GetCurrentTime()
-		);
-
 	if (
 		!currentTimeIsShutdownTime
 		&& !m_shutDownByZeros
@@ -547,47 +582,47 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 		}
 	}
 
-	switch (currentPowerOffType)
-	{
-	case PowerOffTypeHibernate:
-	{
-		SetSuspendState(
-			TRUE,
-			FALSE,
-			FALSE
-		);
-	}
-		break;
+	//switch (currentPowerOffType)
+	//{
+	//case PowerOffTypeHibernate:
+	//{
+	//	SetSuspendState(
+	//		TRUE,
+	//		FALSE,
+	//		FALSE
+	//	);
+	//}
+	//	break;
 
-	case PowerOffTypeShutdown:
-	{
-		UINT shutdownFlags = EWX_SHUTDOWN;
-		if (IsWindows8())
-		{
-			//	#define EWX_HYBRID_SHUTDOWN         0x00400000
-			//	requires Win8 headers, using raw hex to compile for WinXP
-			shutdownFlags |= 0x00400000;
-		}
+	//case PowerOffTypeShutdown:
+	//{
+	//	UINT shutdownFlags = EWX_SHUTDOWN;
+	//	if (IsWindows8())
+	//	{
+	//		//	#define EWX_HYBRID_SHUTDOWN         0x00400000
+	//		//	requires Win8 headers, using raw hex to compile for WinXP
+	//		shutdownFlags |= 0x00400000;
+	//	}
 
-		ExitWindowsEx(
-			shutdownFlags,
-			SHTDN_REASON_FLAG_PLANNED
-		);
-	}
-		break;
+	//	ExitWindowsEx(
+	//		shutdownFlags,
+	//		SHTDN_REASON_FLAG_PLANNED
+	//	);
+	//}
+	//	break;
 
-	case PowerOffTypeSuspend:
-	{
-		SetSuspendState(
-			FALSE,
-			FALSE,
-			FALSE
-		);
-	}
-		break;
-	}
+	//case PowerOffTypeSuspend:
+	//{
+	//	SetSuspendState(
+	//		FALSE,
+	//		FALSE,
+	//		FALSE
+	//	);
+	//}
+	//	break;
+	//}
 
-	CloseDialog(1);
+	//CloseDialog(1);
 }
 
 bool CMainDlg::RadioIsChecked(

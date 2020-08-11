@@ -18,7 +18,7 @@ class CMainDlg :
 public:
 	enum { IDD = IDD_MAINDLG };
 
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	BOOL PreTranslateMessage(MSG* pMsg) override;
 	virtual BOOL OnIdle();
 
 	BEGIN_UPDATE_UI_MAP(CMainDlg)
@@ -147,12 +147,22 @@ private:
 	std::map<unsigned short, unsigned short> m_comboIdxToMinutes;
 
 	bool m_isTicking;
-	CTime m_shutDownAt;
-	bool m_shutDownByZeros;
+
+    CTime m_shutDownAt;
+
+	byte m_shutDownAtHours;
+	byte m_shutDownAtMinutes;
+
+    int m_shutDownInSecondsCountdown;
+
+    bool m_shutDownByZeros;
+	TimerType m_timerType;
+
+	bool m_isCautionMessageAlreadyShown;
 
 	void SetTimerTypeMode(
 		const TimerType& timerType
-		) const throw();
+		) throw();
 
 	void SetPowerOffTypeMode(
 		const PowerOffType& powerOffType
@@ -166,7 +176,7 @@ private:
 
 	void ShowCurrentTime(void) const throw();
 
-	void ProcessCountDown(void) const throw();
+	void ProcessCountDown(void) throw();
 
 	void ProcessShutdownOption(void) throw();
 
