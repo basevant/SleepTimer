@@ -65,7 +65,7 @@ public:
 		const WPARAM wParam,
 		const LPARAM,
 		const BOOL&
-		) throw();
+		);
 
     LRESULT OnMove(
         const UINT,
@@ -111,7 +111,7 @@ public:
 		const WORD,
 		const HWND,
 		const BOOL&
-		) throw();
+		);
 
 	/*										*/
 	/*										*/
@@ -126,7 +126,8 @@ public:
 
 private:
 
-	static const UINT_PTR CURRENT_TIME_TIMER_ID = 15;
+	static const UINT_PTR SHUTDOWN_TIMER_ID = 15;
+	static const UINT_PTR CURRENT_TIME_TIMER_ID = 30;
 
 	const CString TIMER_MASK = CResourceManager::LoadStringFromResource(IDS_TIMER_MASK);
 
@@ -229,4 +230,18 @@ private:
     ) noexcept;
 
     byte GetComboBoxSelectedItemData(const int comboBoxId) const;
+    void PowerOffAndExit(const PowerOffType powerOffType);
+    int GetPowerOffType() const;
+    static CString GetPowerOffTypeDescription(const PowerOffType powerOffType);
+
+    void EnableUiAndStopCountdown() const;
+    void DisableUiAndStartCountdown() const;
+
+    void StartShutdownTimer() noexcept;
+    void StopShutdownTimer() noexcept;
+
+    void StartCurrentTimeTimer() noexcept;
+    void StopCurrentTimeTimer() noexcept;
+
+    void ProcessShutdownByZerosCase() noexcept;
 };

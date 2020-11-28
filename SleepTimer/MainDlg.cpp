@@ -73,7 +73,8 @@ LRESULT CMainDlg::OnInitDialog(
 
 	SetPowerOffTypeMode(PowerOffTypeHibernate);
 
-	SetTimer(CURRENT_TIME_TIMER_ID, 1000);
+    StartShutdownTimer();
+    StartCurrentTimeTimer();
 
 	ShowCurrentTime();
 
@@ -87,6 +88,9 @@ LRESULT CMainDlg::OnDestroy(
 	const BOOL&
 	) throw()
 {
+    StopShutdownTimer();
+    StopCurrentTimeTimer();
+
 	// unregister message filtering and idle updates
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	ATLASSERT(pLoop != NULL);
@@ -145,26 +149,24 @@ LRESULT CMainDlg::OnTimerModeInClick(
 }
 
 LRESULT CMainDlg::OnTimer(
-	const UINT,
-	const WPARAM wParam,
-	const LPARAM,
-	const BOOL&
-	) throw()
+    const UINT,
+    const WPARAM wParam,
+    const LPARAM,
+    const BOOL&
+)
 {
-	const UINT_PTR timerId = static_cast<UINT_PTR>(wParam);
+    if (wParam == SHUTDOWN_TIMER_ID)
+    {
+        ProcessShutdownOption();
+        ProcessCountDown();
+    }
 
-	switch (timerId)
-	{
-		case CURRENT_TIME_TIMER_ID:
-		{
-			ProcessShutdownOption();
-			ShowCurrentTime();
-			ProcessCountDown();
-		}
-		break;
-	}
+    if (wParam == CURRENT_TIME_TIMER_ID)
+    {
+        ShowCurrentTime();
+    }
 
-	return 0;
+    return 0;
 }
 
 LRESULT CMainDlg::OnMove(
@@ -184,48 +186,28 @@ LRESULT CMainDlg::OnBtnTimerClick(
 	const WORD,
 	const HWND,
 	const BOOL&
-	) throw()
+	)
 {
 	m_shutDownByZeros = false;
 
 	if (m_isTicking)
 	{
-		EnableOrDisableShutdownAtControls(TRUE);
-		EnableControl(IDC_RAD_OFF_AT);
-
-		EnableOrDisableShutdownInControls(TRUE);
-		EnableControl(IDC_RAD_OFF_IN);
-
-		EnableControl(IDC_RAD_PWR_HIBERNATE);
-		EnableControl(IDC_RAD_PWR_OFF);
-		EnableControl(IDC_RAD_PWR_SLEEP);
-
-		GetDlgItem(IDC_LBL_OFF_AT).SetWindowTextW(
-			CResourceManager::LoadStringFromResource(IDS_EMPTY_TIME)
-			);
-
-		GetDlgItem(IDC_LBL_OFF_ELPSD).SetWindowTextW(
-			CResourceManager::LoadStringFromResource(IDS_EMPTY_TIME)
-			);
-
-		GetDlgItem(IDC_BTN_START).SetWindowTextW(
-			CResourceManager::LoadStringFromResource(IDS_TIMER_IS_STOPPED_SHOULD_I_START_IT)
-			);
+		EnableUiAndStopCountdown();
 	}
 	else
 	{
 		if (TRUE == RadioIsChecked(IDC_RAD_OFF_IN))
 		{
-			const unsigned short powerOffHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
-			const unsigned short powerOffMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
+			const unsigned short powerOffInHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
+			const unsigned short powerOffInMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
 
 			m_shutDownByZeros = (
-				(0 == powerOffHours)
-				&& (0 == powerOffMinutes)
+				(0 == powerOffInHours)
+				&& (0 == powerOffInMinutes)
 				);
 
-			m_shutDownInSecondsCountdown = powerOffHours * 3600 + powerOffMinutes * 60;
-			m_shutDownAt = CTime::GetCurrentTime() + CTimeSpan(0, powerOffHours, powerOffMinutes, 0);
+			m_shutDownInSecondsCountdown = powerOffInHours * 3600 + powerOffInMinutes * 60;
+			m_shutDownAt = CTime::GetCurrentTime() + CTimeSpan(0, powerOffInHours, powerOffInMinutes, 0);
 		}
 		else
 		{
@@ -237,12 +219,12 @@ LRESULT CMainDlg::OnBtnTimerClick(
 				&& (0 == m_shutDownAtMinutes)
 				);
 
-			const CTime currentTime = CTime::GetCurrentTime();
+			const auto currentTime = CTime::GetCurrentTime();
 
 			if (m_shutDownAtHours < currentTime.GetHour())
 			{
-				const CTime midNight = CTime(currentTime.GetYear(), currentTime.GetMonth(), currentTime.GetDay(), 23, 59, 59);
-				const CTime tomorrow = midNight + CTimeSpan(0, 0, 0, 1);
+				const auto midNight = CTime(currentTime.GetYear(), currentTime.GetMonth(), currentTime.GetDay(), 23, 59, 59);
+				const auto tomorrow = midNight + CTimeSpan(0, 0, 0, 1);
 				m_shutDownAt = tomorrow + CTimeSpan(0, m_shutDownAtHours, m_shutDownAtMinutes, 0);
 			}
 			else
@@ -258,25 +240,14 @@ LRESULT CMainDlg::OnBtnTimerClick(
 			}
 		}
 
-		EnableOrDisableShutdownAtControls(FALSE);
-		DisableControl(IDC_RAD_OFF_AT);
+		if (m_shutDownByZeros)
+		{
+			ProcessShutdownByZerosCase();
 
-		EnableOrDisableShutdownInControls(FALSE);
-		DisableControl(IDC_RAD_OFF_IN);
+			return 0;
+		}
 
-		DisableControl(IDC_RAD_PWR_HIBERNATE);
-		DisableControl(IDC_RAD_PWR_OFF);
-		DisableControl(IDC_RAD_PWR_SLEEP);
-
-		GetDlgItem(IDC_LBL_OFF_AT).SetWindowTextW(
-			m_shutDownAt.Format(TIMER_MASK)
-			);
-
-		ShowCountDown();
-
-		GetDlgItem(IDC_BTN_START).SetWindowTextW(
-			CResourceManager::LoadStringFromResource(IDS_TIMER_IS_TICKING_SHOULD_I_STOP_IT)
-			);
+		DisableUiAndStartCountdown();
 
 		m_isCautionMessageAlreadyShown = false;
 	}
@@ -431,24 +402,7 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 		return;
 	}
 
-	PowerOffType currentPowerOffType;
-
-	if (RadioIsChecked(IDC_RAD_PWR_HIBERNATE))
-	{
-		currentPowerOffType = PowerOffTypeHibernate;
-	}
-	else if (RadioIsChecked(IDC_RAD_PWR_OFF))
-	{
-		currentPowerOffType = PowerOffTypeShutdown;
-	}
-	else if (RadioIsChecked(IDC_RAD_PWR_SLEEP))
-	{
-		currentPowerOffType = PowerOffTypeSuspend;
-	}
-	else
-	{
-		return;
-	}
+    const auto currentPowerOffType = static_cast<PowerOffType>(GetPowerOffType());
 
 	bool currentTimeIsCautionTime;
 	bool currentTimeIsShutdownTime;
@@ -474,160 +428,54 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 		currentTimeIsShutdownTime = m_shutDownInSecondsCountdown <= 0;
 	}
 
-	if (currentTimeIsCautionTime)
-	{
-		//	http://msdn.microsoft.com/en-us/library/windows/desktop/ms645505%28v=vs.85%29.aspx
-		//
-		CString powerOffTypeMessage;
+    if (currentTimeIsCautionTime && !m_isCautionMessageAlreadyShown)
+    {
+        m_isCautionMessageAlreadyShown = true;
 
-        switch (currentPowerOffType)
+        auto* const hWndForegroundWindow = GetForegroundWindow();
+        if (
+            (nullptr != hWndForegroundWindow)
+            && (m_hWnd != hWndForegroundWindow)
+            )
         {
-            case PowerOffTypeHibernate:
-            {
-                powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_HIBERNATE);
-            }
-            break;
-
-            case PowerOffTypeShutdown:
-            {
-                powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_SHUTDOWN);
-            }
-            break;
-
-            case PowerOffTypeSuspend:
-            {
-                powerOffTypeMessage = CResourceManager::LoadStringFromResource(IDS_PWR_SLEEP);
-            }
-            break;
+            ::ShowWindow(
+                hWndForegroundWindow,
+                SW_MINIMIZE
+            );
         }
 
-		if (m_isCautionMessageAlreadyShown)
-		{
-			return;
-		}
+        ShowWindow(SW_SHOWDEFAULT);
 
-		m_isCautionMessageAlreadyShown = true;
+        const auto powerOffTypeMessage = GetPowerOffTypeDescription(currentPowerOffType);
 
-		const HWND hWndForegroundWindow = GetForegroundWindow();
-		if (
-			(NULL != hWndForegroundWindow)
-			&& (m_hWnd != hWndForegroundWindow)
-			)
-		{
-			::ShowWindow(
-				hWndForegroundWindow,
-				SW_MINIMIZE
-				);
-		}
+        CStringW stopShutdownCautionMessage;
+        stopShutdownCautionMessage.Format(
+            CResourceManager::LoadStringFromResource(IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN_TEMPLATE),
+            static_cast<LPCWSTR>(powerOffTypeMessage)
+        );
 
-		ShowWindow(SW_SHOWDEFAULT);
+        const auto stopShutdownCautionMessageBoxResult = MessageBox(
+            stopShutdownCautionMessage,
+            CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
+            MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND
+        );
 
-		CStringW cautionShutdownMessage;
-		cautionShutdownMessage.Format(
-			CResourceManager::LoadStringFromResource(IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN),
-			static_cast<LPCWSTR>(powerOffTypeMessage)
-			);
+        if (IDYES == stopShutdownCautionMessageBoxResult)
+        {
+            ::SendDlgItemMessage(
+                m_hWnd,
+                IDC_BTN_START,
+                BM_CLICK,
+                0,
+                0
+            );
+        }
+    }
 
-		const int messageBoxResult = MessageBox(
-			cautionShutdownMessage,
-			CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
-			MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND
-			);
-
-		if (IDYES == messageBoxResult)
-		{
-			::SendDlgItemMessage(
-				m_hWnd,
-				IDC_BTN_START,
-				BM_CLICK,
-				0,
-				0
-				);
-		}
-
-		return;		//	if (currentTimeIsCautionTime)
-	}
-
-	if (
-		!currentTimeIsShutdownTime
-		&& !m_shutDownByZeros
-		)
-	{
-		return;
-	}
-
-	KillTimer(CURRENT_TIME_TIMER_ID);
-
-	if (m_shutDownByZeros)
-	{
-		const CString confirmShutdownNowMessage = CResourceManager::LoadStringFromResource(
-			IDS_CAUTION_MESSAGE_SHUTDOWN_BY_ZEROS
-			);
-
-		const int messageBoxResult = MessageBox(
-			confirmShutdownNowMessage,
-			CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
-			MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND
-			);
-
-		if (IDNO == messageBoxResult)
-		{
-			::SendDlgItemMessage(
-				m_hWnd,
-				IDC_BTN_START,
-				BM_CLICK,
-				0,
-				0
-				);
-
-			m_shutDownByZeros = false;
-			SetTimer(CURRENT_TIME_TIMER_ID, 1000);
-
-			return;
-		}
-	}
-
-	//switch (currentPowerOffType)
-	//{
-	//case PowerOffTypeHibernate:
-	//{
-	//	SetSuspendState(
-	//		TRUE,
-	//		FALSE,
-	//		FALSE
-	//	);
-	//}
-	//	break;
-
-	//case PowerOffTypeShutdown:
-	//{
-	//	UINT shutdownFlags = EWX_SHUTDOWN;
-	//	if (IsWindows8())
-	//	{
-	//		//	#define EWX_HYBRID_SHUTDOWN         0x00400000
-	//		//	requires Win8 headers, using raw hex to compile for WinXP
-	//		shutdownFlags |= 0x00400000;
-	//	}
-
-	//	ExitWindowsEx(
-	//		shutdownFlags,
-	//		SHTDN_REASON_FLAG_PLANNED
-	//	);
-	//}
-	//	break;
-
-	//case PowerOffTypeSuspend:
-	//{
-	//	SetSuspendState(
-	//		FALSE,
-	//		FALSE,
-	//		FALSE
-	//	);
-	//}
-	//	break;
-	//}
-
-	//CloseDialog(1);
+    if (currentTimeIsShutdownTime)
+    {
+        PowerOffAndExit(currentPowerOffType);
+    }
 }
 
 bool CMainDlg::RadioIsChecked(
@@ -916,4 +764,195 @@ byte CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const
 {
     const auto someComboBox = static_cast<CComboBox>(GetDlgItem(comboBoxId));
     return static_cast<byte>(someComboBox.GetItemData(someComboBox.GetCurSel()));
+}
+
+void CMainDlg::PowerOffAndExit(const PowerOffType powerOffType)
+{
+    switch (powerOffType)
+    {
+        case PowerOffTypeHibernate:
+        {
+            SetSuspendState(
+                TRUE,
+                FALSE,
+                FALSE
+            );
+        }
+        break;
+
+        case PowerOffTypeShutdown:
+        {
+            UINT shutdownFlags = EWX_SHUTDOWN;
+            if (IsWindows8())
+            {
+                //	#define EWX_HYBRID_SHUTDOWN         0x00400000
+                //	requires Win8 headers, using raw hex to compile for WinXP
+                shutdownFlags |= 0x00400000;
+            }
+
+            ExitWindowsEx(
+                shutdownFlags,
+                SHTDN_REASON_FLAG_PLANNED
+            );
+        }
+        break;
+
+        case PowerOffTypeSuspend:
+        {
+            SetSuspendState(
+                FALSE,
+                FALSE,
+                FALSE
+            );
+        }
+        break;
+    }
+
+    CloseDialog(0);
+}
+
+int CMainDlg::GetPowerOffType() const
+{
+    PowerOffType retVal;
+
+    if (RadioIsChecked(IDC_RAD_PWR_HIBERNATE))
+    {
+        retVal = PowerOffTypeHibernate;
+    }
+    else if (RadioIsChecked(IDC_RAD_PWR_OFF))
+    {
+        retVal = PowerOffTypeShutdown;
+    }
+    else
+    {
+        retVal = PowerOffTypeSuspend;
+    }
+
+    return retVal;
+}
+
+CString CMainDlg::GetPowerOffTypeDescription(const PowerOffType powerOffType)
+{
+    //	http://msdn.microsoft.com/en-us/library/windows/desktop/ms645505%28v=vs.85%29.aspx
+    //
+    CString retVal;
+
+    switch (powerOffType)
+    {
+        case PowerOffTypeHibernate:
+        {
+            retVal = CResourceManager::LoadStringFromResource(IDS_PWR_HIBERNATE_CAUTION);
+        }
+        break;
+
+        case PowerOffTypeShutdown:
+        {
+            retVal = CResourceManager::LoadStringFromResource(IDS_PWR_SHUTDOWN_CAUTION);
+        }
+        break;
+
+        case PowerOffTypeSuspend:
+        {
+            retVal = CResourceManager::LoadStringFromResource(IDS_PWR_SLEEP_CAUTION);
+        }
+        break;
+    }
+
+    return retVal;
+}
+
+void CMainDlg::EnableUiAndStopCountdown() const
+{
+    EnableOrDisableShutdownAtControls(TRUE);
+    EnableControl(IDC_RAD_OFF_AT);
+
+    EnableOrDisableShutdownInControls(TRUE);
+    EnableControl(IDC_RAD_OFF_IN);
+
+    EnableControl(IDC_RAD_PWR_HIBERNATE);
+    EnableControl(IDC_RAD_PWR_OFF);
+    EnableControl(IDC_RAD_PWR_SLEEP);
+
+    GetDlgItem(IDC_LBL_OFF_AT).SetWindowTextW(
+        CResourceManager::LoadStringFromResource(IDS_EMPTY_TIME)
+    );
+
+    GetDlgItem(IDC_LBL_OFF_ELPSD).SetWindowTextW(
+        CResourceManager::LoadStringFromResource(IDS_EMPTY_TIME)
+    );
+
+    GetDlgItem(IDC_BTN_START).SetWindowTextW(
+        CResourceManager::LoadStringFromResource(IDS_TIMER_IS_STOPPED_SHOULD_I_START_IT)
+    );
+}
+
+void CMainDlg::DisableUiAndStartCountdown() const
+{
+    EnableOrDisableShutdownAtControls(FALSE);
+    DisableControl(IDC_RAD_OFF_AT);
+
+    EnableOrDisableShutdownInControls(FALSE);
+    DisableControl(IDC_RAD_OFF_IN);
+
+    DisableControl(IDC_RAD_PWR_HIBERNATE);
+    DisableControl(IDC_RAD_PWR_OFF);
+    DisableControl(IDC_RAD_PWR_SLEEP);
+
+    GetDlgItem(IDC_LBL_OFF_AT).SetWindowTextW(
+        m_shutDownAt.Format(TIMER_MASK)
+    );
+
+    ShowCountDown();
+
+    GetDlgItem(IDC_BTN_START).SetWindowTextW(
+        CResourceManager::LoadStringFromResource(IDS_TIMER_IS_TICKING_SHOULD_I_STOP_IT)
+    );
+}
+
+void CMainDlg::StartShutdownTimer() noexcept
+{
+    SetTimer(SHUTDOWN_TIMER_ID, 1000);
+}
+
+void CMainDlg::StopShutdownTimer() noexcept
+{
+    KillTimer(SHUTDOWN_TIMER_ID);
+}
+
+void CMainDlg::ProcessShutdownByZerosCase() noexcept
+{
+    StopShutdownTimer();
+
+    const auto confirmShutdownNowMessage = CResourceManager::LoadStringFromResource(
+        IDS_CAUTION_MESSAGE_SHUTDOWN_BY_ZEROS
+    );
+
+    const auto powerOffNowMessageBoxResult = MessageBox(
+        confirmShutdownNowMessage,
+        CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
+        MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND
+    );
+
+    if (IDYES == powerOffNowMessageBoxResult)
+    {
+        PowerOffAndExit(
+            static_cast<PowerOffType>(GetPowerOffType())
+        );
+
+        return;
+    }
+
+    m_shutDownByZeros = false;
+
+    StartShutdownTimer();
+}
+
+void CMainDlg::StartCurrentTimeTimer() noexcept
+{
+    SetTimer(CURRENT_TIME_TIMER_ID, 1000);
+}
+
+void CMainDlg::StopCurrentTimeTimer() noexcept
+{
+    KillTimer(CURRENT_TIME_TIMER_ID);
 }

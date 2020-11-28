@@ -53,7 +53,7 @@ BEGIN
     LTEXT           "00:00:00",IDC_LBL_TIME,209,82,30,8
     LTEXT           "?",IDC_LBL_OFF_AT,209,99,30,8
     LTEXT           "?",IDC_LBL_OFF_ELPSD,209,116,30,8
-    RTEXT           "Copyright © basevant@live.ru, 2014",IDC_LBL_EMAIL,126,204,119,8
+    RTEXT           "Copyright © basevant@live.ru, 2020",IDC_LBL_EMAIL,126,204,119,8
 END
 
 
@@ -111,7 +111,7 @@ BEGIN
             VALUE "FileDescription", "SleepTimer"
             VALUE "FileVersion", "1.0.0.3"
             VALUE "InternalName", "SleepTimer"
-            VALUE "LegalCopyright", "Copyright 2014 © Anton Basevich"
+            VALUE "LegalCopyright", "Copyright 2020 © Anton Basevich"
             VALUE "OriginalFilename", "SleepTimer.exe"
             VALUE "ProductName", "Sleep Timer"
             VALUE "ProductVersion", "1.0.0.3"
@@ -158,11 +158,11 @@ BEGIN
                             "Timer is ticking now, click to stop it"
     IDS_EMPTY_TIME          "?"
     IDS_TIMER_MASK          "%H:%M:%S"
-    IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN 
-                            "I am going to %s your PC in one minute. Cancel it?"
-    IDS_PWR_SHUTDOWN        "shut down"
-    IDS_PWR_HIBERNATE       "hibernate"
-    IDS_PWR_SLEEP           "send to the Sleep Mode"
+    IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN_TEMPLATE 
+                            "Your PC will be %s less than one minute. Cancel it?"
+    IDS_PWR_SHUTDOWN_CAUTION        "Shut down"
+    IDS_PWR_HIBERNATE_CAUTION       "Hibernated"
+    IDS_PWR_SLEEP_CAUTION           "sent into Sleep Mode"
     IDS_CAUTION_CONFIRM_EXIT 
                             "Timer is programmed to Power Off your PC.\nCancel Power Off and exit?"
     IDS_PWR_OPT_SHUTDOWN    "Shut down"

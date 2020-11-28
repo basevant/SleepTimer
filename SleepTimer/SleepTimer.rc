@@ -53,7 +53,7 @@ BEGIN
     LTEXT           "00:00:00",IDC_LBL_TIME,209,82,30,8
     LTEXT           "?",IDC_LBL_OFF_AT,209,99,30,8
     LTEXT           "?",IDC_LBL_OFF_ELPSD,209,116,30,8
-    RTEXT           "Copyright © basevant@live.ru, 2014",IDC_LBL_EMAIL,126,204,119,8
+    RTEXT           "Copyright © basevant@live.ru, 2020",IDC_LBL_EMAIL,126,204,119,8
 END
 
 
@@ -111,7 +111,7 @@ BEGIN
             VALUE "FileDescription", "SleepTimer"
             VALUE "FileVersion", "1.0.0.3"
             VALUE "InternalName", "SleepTimer"
-            VALUE "LegalCopyright", "Copyright 2014 © Anton Basevich"
+            VALUE "LegalCopyright", "Copyright 2020 © Anton Basevich"
             VALUE "OriginalFilename", "SleepTimer.exe"
             VALUE "ProductName", "Sleep Timer"
             VALUE "ProductVersion", "1.0.0.3"
@@ -156,11 +156,11 @@ BEGIN
     IDS_TIMER_IS_TICKING_SHOULD_I_STOP_IT "Таймер запущен, остановить?"
     IDS_EMPTY_TIME          "?"
     IDS_TIMER_MASK          "%H:%M:%S"
-    IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN 
-                            "Я планирую %s примерно через минуту. Отменить?"
-    IDS_PWR_SHUTDOWN        "выключить Ваш компьютер"
-    IDS_PWR_HIBERNATE       "отправить Ваш компьютер в режим гибернации"
-    IDS_PWR_SLEEP           "отправить Ваш компьютер в спящий режим"
+    IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN_TEMPLATE 
+                            "%s менее чем через минуту. Отменить?"
+    IDS_PWR_SHUTDOWN_CAUTION "Компьютер будет выключен"
+    IDS_PWR_HIBERNATE_CAUTION "Компьютер будет отправлен в режим гибернации"
+    IDS_PWR_SLEEP_CAUTION   "Компьютер будет отправлен в спящий режим"
     IDS_CAUTION_CONFIRM_EXIT 
                             "Отменить запланированное выключение и закрыть программу?"
     IDS_PWR_OPT_SHUTDOWN    "Выключить"
