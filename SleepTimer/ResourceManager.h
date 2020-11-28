@@ -3,7 +3,7 @@
 class CResourceManager
 {
 public:
-	static const CString LoadStringFromResource(
-		const UINT stringId
-		) noexcept;
+    static const CString LoadStringFromResource(
+        const UINT stringId
+    ) noexcept;
 };

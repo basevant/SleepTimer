@@ -2,17 +2,17 @@
 #include "ResourceManager.h"
 
 const CString CResourceManager::LoadStringFromResource(
-	const UINT stringId
-	) noexcept
+    const UINT stringId
+) noexcept
 {
-	WCHAR * pBuf = nullptr;
+    WCHAR* pBuf = nullptr;
 
-	auto const len = LoadStringW(
-		nullptr,
-		stringId,
-		reinterpret_cast<LPWSTR>(&pBuf),
-		0
-		);
+    auto const len = LoadStringW(
+        nullptr,
+        stringId,
+        reinterpret_cast<LPWSTR>(&pBuf),
+        0
+    );
 
-	return len > 0 ? CString(pBuf, len) : CString();
+    return len > 0 ? CString(pBuf, len) : CString();
 }
