@@ -8,14 +8,14 @@
 #include "MainDlg.h"
 
 CAppModule _Module;
-bool AdjustShutDownPrivileges(void) throw();
+bool AdjustShutDownPrivileges() noexcept;
 
-int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
+int Run(LPCTSTR /*lpctstrCmdLine*/ = nullptr, const int nCmdShow = SW_SHOWDEFAULT)
 {
 	if (!AdjustShutDownPrivileges())
 	{
 		MessageBox(
-			NULL,
+			nullptr,
 			CResourceManager::LoadStringFromResource(IDS_ERROR_UNABLE_TO_ADJUST_SHUTDOWN_PRIVILEGES),
 			CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
 			MB_OK | MB_ICONEXCLAMATION
@@ -29,7 +29,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 	CMainDlg dlgMain;
 
-	if(dlgMain.Create(NULL) == NULL)
+	if(dlgMain.Create(nullptr) == nullptr)
 	{
 		ATLTRACE(_T("Main dialog creation failed!\n"));
 		return 0;
@@ -37,25 +37,26 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 	dlgMain.ShowWindow(nCmdShow);
 
-	int nRet = theLoop.Run();
+    auto const nRet = theLoop.Run();
 
 	_Module.RemoveMessageLoop();
 	return nRet;
 }
 
-int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
+int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lptstrCmdLine, const int nCmdShow)
 {
-	HRESULT hRes = ::CoInitialize(NULL);
+	auto hRes = ::CoInitialize(nullptr);
+	ATLASSERT(SUCCEEDED(hRes));
 
 	// this resolves ATL window thunking problem when Microsoft Layer for Unicode (MSLU) is used
-	::DefWindowProc(NULL, 0, 0, 0L);
+	::DefWindowProc(nullptr, 0, 0, 0L);
 
 	AtlInitCommonControls(ICC_BAR_CLASSES);	// add flags to support other controls
 
-	hRes = _Module.Init(NULL, hInstance);
+	hRes = _Module.Init(nullptr, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
 
-	int nRet = Run(lpstrCmdLine, nCmdShow);
+	auto const nRet = Run(lptstrCmdLine, nCmdShow);
 
 	_Module.Term();
 	::CoUninitialize();
@@ -63,14 +64,14 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	return nRet;
 }
 
-bool AdjustShutDownPrivileges(void) throw()
+bool AdjustShutDownPrivileges() noexcept
 {
-	HANDLE hToken = NULL;
+	HANDLE hToken = nullptr;
 
 	TOKEN_PRIVILEGES tokenPrivileges;
 	ZeroMemory(&tokenPrivileges, sizeof(TOKEN_PRIVILEGES));
 
-	BOOL result = OpenProcessToken(
+	auto result = OpenProcessToken(
 		GetCurrentProcess(),
 		TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
 		&hToken
@@ -82,17 +83,17 @@ bool AdjustShutDownPrivileges(void) throw()
 	}
 
 	result = LookupPrivilegeValueW(
-		NULL,
+		nullptr,
 		SE_SHUTDOWN_NAME,
 		&tokenPrivileges.Privileges[0].Luid
 		);
 
 	if (FALSE == result)
 	{
-		if (NULL != hToken)
+		if (nullptr != hToken)
 		{
 			CloseHandle(hToken);
-			hToken = NULL;
+			hToken = nullptr;
 		}
 
 		return false;
@@ -106,8 +107,8 @@ bool AdjustShutDownPrivileges(void) throw()
 		FALSE,
 		&tokenPrivileges,
 		0,
-		(PTOKEN_PRIVILEGES)NULL,
-		0
+		static_cast<PTOKEN_PRIVILEGES>(nullptr),
+		nullptr
 		);
 
 	if (
@@ -115,21 +116,20 @@ bool AdjustShutDownPrivileges(void) throw()
 		&& (GetLastError() == ERROR_SUCCESS)
 		)
 	{
-		if (NULL != hToken)
+		if (nullptr != hToken)
 		{
 			CloseHandle(hToken);
-			hToken = NULL;
+			hToken = nullptr;
 		}
 
 		return true;
 	}
 
-	if (NULL != hToken)
+	if (nullptr != hToken)
 	{
 		CloseHandle(hToken);
-		hToken = NULL;
+		hToken = nullptr;
 	}
 
 	return false;
 }
-
