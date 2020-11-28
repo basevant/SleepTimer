@@ -4,6 +4,6 @@ class CResourceManager
 {
 public:
 	static const CString LoadStringFromResource(
-		const UINT stringID
-		) throw();
+		const UINT stringId
+		) noexcept;
 };
