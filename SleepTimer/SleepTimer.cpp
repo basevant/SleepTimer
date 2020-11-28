@@ -43,7 +43,7 @@ int Run(LPCTSTR /*lpctstrCmdLine*/ = nullptr, const int nCmdShow = SW_SHOWDEFAUL
     return nRet;
 }
 
-int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lptstrCmdLine, const int nCmdShow)
+int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lptstrCmdLine, const int nShowCmd)
 {
     auto hRes = ::CoInitialize(nullptr);
     ATLASSERT(SUCCEEDED(hRes));
@@ -56,7 +56,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
     hRes = _Module.Init(nullptr, hInstance);
     ATLASSERT(SUCCEEDED(hRes));
 
-    auto const nRet = Run(lptstrCmdLine, nCmdShow);
+    auto const nRet = Run(lptstrCmdLine, nShowCmd);
 
     _Module.Term();
     ::CoUninitialize();
