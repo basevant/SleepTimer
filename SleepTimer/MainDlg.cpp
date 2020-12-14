@@ -7,6 +7,7 @@
 #include "MainDlg.h"
 
 #include "SettingsRegistryStorage.h"
+#include "ShutdownHelper.h"
 #include "SystemHelper.h"
 
 CMainDlg::CMainDlg():
@@ -619,38 +620,19 @@ void CMainDlg::PowerOffAndExit(const PowerOffType powerOffType)
     {
         case PowerOffTypeHibernate:
         {
-            SetSuspendState(
-                TRUE,
-                FALSE,
-                FALSE
-            );
+            CShutdownHelper::Hibernate();
         }
         break;
 
         case PowerOffTypeShutdown:
         {
-            UINT shutdownFlags = EWX_SHUTDOWN;
-            if (CSystemHelper::IsOperatingSystemIsWindows8OrGreater())
-            {
-                //	#define EWX_HYBRID_SHUTDOWN         0x00400000
-                //	requires Win8 headers, using raw hex to compile using WinXP toolset
-                shutdownFlags |= 0x00400000;
-            }
-
-            ExitWindowsEx(
-                shutdownFlags,
-                SHTDN_REASON_FLAG_PLANNED
-            );
+            CShutdownHelper::Shutdown();
         }
         break;
 
         case PowerOffTypeSuspend:
         {
-            SetSuspendState(
-                FALSE,
-                FALSE,
-                FALSE
-            );
+            CShutdownHelper::Sleep();
         }
         break;
     }

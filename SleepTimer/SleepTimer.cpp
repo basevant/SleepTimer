@@ -6,13 +6,13 @@
 #include "resource.h"
 
 #include "MainDlg.h"
-#include "SystemHelper.h"
+#include "ShutdownHelper.h"
 
 CAppModule _Module;
 
 int Run(LPCTSTR /*lpctstrCmdLine*/ = nullptr, const int nCmdShow = SW_SHOWDEFAULT)
 {
-    if (CSystemHelper::AdjustShutDownPrivileges() == FALSE)
+    if (CShutdownHelper::AdjustShutDownPrivileges() == FALSE)
     {
         MessageBox(
             nullptr,
