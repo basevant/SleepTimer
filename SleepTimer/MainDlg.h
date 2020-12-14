@@ -125,6 +125,9 @@ public:
     CMainDlg();
 
 private:
+    BOOL m_isHibernateAllowed = false;
+    BOOL m_isSuspendAllowed = false;
+    BOOL m_isShutdownAllowed = false;
 
     static const UINT_PTR SHUTDOWN_TIMER_ID = 15;
     static const UINT_PTR CURRENT_TIME_TIMER_ID = 30;

@@ -29,6 +29,29 @@ LRESULT CMainDlg::OnInitDialog(
     const BOOL&
     )
 {
+    m_isHibernateAllowed = IsPwrHibernateAllowed();
+    m_isSuspendAllowed = IsPwrSuspendAllowed();
+    m_isShutdownAllowed = IsPwrShutdownAllowed();
+
+    const auto canMakeAnyPowerOffAction = (
+        m_isHibernateAllowed
+        || m_isSuspendAllowed
+        || m_isShutdownAllowed
+        );
+
+    if (!canMakeAnyPowerOffAction)
+    {
+        MessageBox(
+            CResourceManager::LoadStringFromResource(IDS_ERROR_UNABLE_TO_ADJUST_SHUTDOWN_PRIVILEGES),
+            CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
+            MB_OK | MB_ICONEXCLAMATION
+        );
+
+        CloseDialog(0);
+
+        return TRUE;
+    }
+
     POINTS topLeftWindowPointFromRegistry;
     ZeroMemory(&topLeftWindowPointFromRegistry, sizeof(POINTS));
 
@@ -292,38 +315,43 @@ void CMainDlg::SetPowerOffTypeMode(
     const PowerOffType& powerOffType
     ) noexcept
 {
-    const auto isHibernateAllowed = IsPwrHibernateAllowed();
-    const auto isSuspendAllowed = IsPwrSuspendAllowed();
-
-    EnableOrDisableControl(IDC_RAD_PWR_HIBERNATE, isHibernateAllowed);
-    EnableOrDisableControl(IDC_RAD_PWR_SLEEP, isSuspendAllowed);
+    EnableOrDisableControl(IDC_RAD_PWR_HIBERNATE, m_isHibernateAllowed);
+    EnableOrDisableControl(IDC_RAD_PWR_SLEEP, m_isSuspendAllowed);
+    EnableOrDisableControl(IDC_RAD_PWR_OFF, m_isShutdownAllowed);
 
     auto activePowerButtonId = 0;
 
     switch (powerOffType)
     {
-    case PowerOffTypeHibernate:
-    {
-        if (isHibernateAllowed)
+        case PowerOffTypeHibernate:
         {
-            activePowerButtonId = IDC_RAD_PWR_HIBERNATE;
+            if (m_isHibernateAllowed)
+            {
+                activePowerButtonId = IDC_RAD_PWR_HIBERNATE;
+            }
         }
-    }
         break;
 
-    case PowerOffTypeSuspend:
-    {
-        if (isSuspendAllowed)
+        case PowerOffTypeSuspend:
         {
-            activePowerButtonId = IDC_RAD_PWR_SLEEP;
+            if (m_isSuspendAllowed)
+            {
+                activePowerButtonId = IDC_RAD_PWR_SLEEP;
+            }
         }
-    }
         break;
-    }
 
-    if (0 == activePowerButtonId)
-    {
-        activePowerButtonId = IDC_RAD_PWR_OFF;
+        case PowerOffTypeShutdown:
+        {
+            if (m_isShutdownAllowed)
+            {
+                activePowerButtonId = IDC_RAD_PWR_OFF;
+            }
+        }
+        break;
+
+        default:
+            ATLASSERT(FALSE && L"Unsupported power-off action.");
     }
 
     CheckRadioButton(
