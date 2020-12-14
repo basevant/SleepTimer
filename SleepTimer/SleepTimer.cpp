@@ -6,13 +6,13 @@
 #include "resource.h"
 
 #include "MainDlg.h"
+#include "SystemHelper.h"
 
 CAppModule _Module;
-bool AdjustShutDownPrivileges() noexcept;
 
 int Run(LPCTSTR /*lpctstrCmdLine*/ = nullptr, const int nCmdShow = SW_SHOWDEFAULT)
 {
-    if (!AdjustShutDownPrivileges())
+    if (CSystemHelper::AdjustShutDownPrivileges() == FALSE)
     {
         MessageBox(
             nullptr,
@@ -62,74 +62,4 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
     ::CoUninitialize();
 
     return nRet;
-}
-
-bool AdjustShutDownPrivileges() noexcept
-{
-    HANDLE hToken = nullptr;
-
-    TOKEN_PRIVILEGES tokenPrivileges;
-    ZeroMemory(&tokenPrivileges, sizeof(TOKEN_PRIVILEGES));
-
-    auto result = OpenProcessToken(
-        GetCurrentProcess(),
-        TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
-        &hToken
-        );
-
-    if (FALSE == result)
-    {
-        return false;
-    }
-
-    result = LookupPrivilegeValueW(
-        nullptr,
-        SE_SHUTDOWN_NAME,
-        &tokenPrivileges.Privileges[0].Luid
-        );
-
-    if (FALSE == result)
-    {
-        if (nullptr != hToken)
-        {
-            CloseHandle(hToken);
-            hToken = nullptr;
-        }
-
-        return false;
-    }
-
-    tokenPrivileges.PrivilegeCount = 1;
-    tokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-
-    result = AdjustTokenPrivileges(
-        hToken,
-        FALSE,
-        &tokenPrivileges,
-        0,
-        static_cast<PTOKEN_PRIVILEGES>(nullptr),
-        nullptr
-        );
-
-    if (
-        (FALSE != result)
-        && (GetLastError() == ERROR_SUCCESS)
-        )
-    {
-        if (nullptr != hToken)
-        {
-            CloseHandle(hToken);
-            hToken = nullptr;
-        }
-
-        return true;
-    }
-
-    if (nullptr != hToken)
-    {
-        CloseHandle(hToken);
-        hToken = nullptr;
-    }
-
-    return false;
 }

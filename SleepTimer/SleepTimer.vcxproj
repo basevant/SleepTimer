@@ -127,6 +127,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SystemHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainDlg.h" />
@@ -135,6 +136,7 @@
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="SettingsRegistryStorage.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SystemHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SleepTimer.rc" />

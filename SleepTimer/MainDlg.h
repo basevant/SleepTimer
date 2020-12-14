@@ -211,8 +211,6 @@ private:
         const int controlId
         ) const noexcept;
 
-    static BOOL IsWindows8() noexcept;
-
     BOOL MoveWindowPositionToSavedPosition(
         POINTS topLeftWindowPointFromRegistry
     ) noexcept;

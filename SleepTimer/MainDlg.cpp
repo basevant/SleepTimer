@@ -7,6 +7,7 @@
 #include "MainDlg.h"
 
 #include "SettingsRegistryStorage.h"
+#include "SystemHelper.h"
 
 CMainDlg::CMainDlg():
     m_timerType()
@@ -592,24 +593,6 @@ void CMainDlg::EnableControl(
     EnableOrDisableControl(controlId);
 }
 
-BOOL CMainDlg::IsWindows8() noexcept
-{
-    OSVERSIONINFO osvi;
-
-    ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-    if (FALSE == GetVersionEx(&osvi))
-    {
-        return FALSE;
-    }
-
-    return (
-        (osvi.dwMajorVersion >= 6)
-        && (osvi.dwMinorVersion >= 2)
-        );
-}
-
 BOOL CMainDlg::MoveWindowPositionToSavedPosition(
     POINTS topLeftWindowPointFromRegistry
 ) noexcept
@@ -647,10 +630,10 @@ void CMainDlg::PowerOffAndExit(const PowerOffType powerOffType)
         case PowerOffTypeShutdown:
         {
             UINT shutdownFlags = EWX_SHUTDOWN;
-            if (IsWindows8())
+            if (CSystemHelper::IsOperatingSystemIsWindows8OrGreater())
             {
                 //	#define EWX_HYBRID_SHUTDOWN         0x00400000
-                //	requires Win8 headers, using raw hex to compile for WinXP
+                //	requires Win8 headers, using raw hex to compile using WinXP toolset
                 shutdownFlags |= 0x00400000;
             }
 
