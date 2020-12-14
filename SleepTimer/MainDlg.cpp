@@ -8,29 +8,29 @@
 
 CMainDlg::CMainDlg()
 {
-	m_isTicking = false;
-	m_shutDownByZeros = false;
-	m_shutDownInSecondsCountdown = 0;
-	m_isCautionMessageAlreadyShown = false;
+    m_isTicking = false;
+    m_shutDownByZeros = false;
+    m_shutDownInSecondsCountdown = 0;
+    m_isCautionMessageAlreadyShown = false;
 }
 
 BOOL CMainDlg::PreTranslateMessage(MSG* pMsg)
 {
-	return CWindow::IsDialogMessage(pMsg);
+    return CWindow::IsDialogMessage(pMsg);
 }
 
 BOOL CMainDlg::OnIdle()
 {
-	UIUpdateChildWindows();
-	return FALSE;
+    UIUpdateChildWindows();
+    return FALSE;
 }
 
 LRESULT CMainDlg::OnInitDialog(
-	const UINT,
-	const WPARAM,
-	const LPARAM,
-	const BOOL&
-	) throw()
+    const UINT,
+    const WPARAM,
+    const LPARAM,
+    const BOOL&
+    ) throw()
 {
     POINTS topLeftWindowPointFromRegistry;
     ZeroMemory(&topLeftWindowPointFromRegistry, sizeof(POINTS));
@@ -46,106 +46,106 @@ LRESULT CMainDlg::OnInitDialog(
         CenterWindow();
     }
 
-	// set icons
-	HICON hIcon = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON));
-	SetIcon(hIcon, TRUE);
-	HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
-	SetIcon(hIconSmall, FALSE);
+    // set icons
+    HICON hIcon = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON));
+    SetIcon(hIcon, TRUE);
+    HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
+    SetIcon(hIconSmall, FALSE);
 
-	// register object for message filtering and idle updates
-	CMessageLoop* pLoop = _Module.GetMessageLoop();
-	ATLASSERT(pLoop != NULL);
-	pLoop->AddMessageFilter(this);
+    // register object for message filtering and idle updates
+    CMessageLoop* pLoop = _Module.GetMessageLoop();
+    ATLASSERT(pLoop != NULL);
+    pLoop->AddMessageFilter(this);
 
-	UIAddChildWindowContainer(m_hWnd);
+    UIAddChildWindowContainer(m_hWnd);
 
-	//
-	//	Custom UI initialization
-	//
+    //
+    //	Custom UI initialization
+    //
 
-	FillHoursCombo(IDC_CMB_AT_HRS, 0);
-	FillMinutesCombo(IDC_CMB_AT_MINS);
+    FillHoursCombo(IDC_CMB_AT_HRS, 0);
+    FillMinutesCombo(IDC_CMB_AT_MINS);
 
-	FillHoursCombo(IDC_CMB_IN_HRS, 1);
-	FillMinutesCombo(IDC_CMB_IN_MINS);
+    FillHoursCombo(IDC_CMB_IN_HRS, 1);
+    FillMinutesCombo(IDC_CMB_IN_MINS);
 
-	SendDlgItemMessage(IDC_RAD_OFF_IN, BM_CLICK);
+    SendDlgItemMessage(IDC_RAD_OFF_IN, BM_CLICK);
 
-	SetPowerOffTypeMode(PowerOffTypeHibernate);
+    SetPowerOffTypeMode(PowerOffTypeHibernate);
 
     StartShutdownTimer();
     StartCurrentTimeTimer();
 
-	ShowCurrentTime();
+    ShowCurrentTime();
 
-	return TRUE;
+    return TRUE;
 }
 
 LRESULT CMainDlg::OnDestroy(
-	const UINT,
-	const WPARAM,
-	const LPARAM,
-	const BOOL&
-	) throw()
+    const UINT,
+    const WPARAM,
+    const LPARAM,
+    const BOOL&
+    ) throw()
 {
     StopShutdownTimer();
     StopCurrentTimeTimer();
 
-	// unregister message filtering and idle updates
-	CMessageLoop* pLoop = _Module.GetMessageLoop();
-	ATLASSERT(pLoop != NULL);
-	pLoop->RemoveMessageFilter(this);
+    // unregister message filtering and idle updates
+    CMessageLoop* pLoop = _Module.GetMessageLoop();
+    ATLASSERT(pLoop != NULL);
+    pLoop->RemoveMessageFilter(this);
 
-	return 0;
+    return 0;
 }
 
 LRESULT CMainDlg::OnCancel(
-	const WORD,
-	const WORD wID,
-	const HWND,
-	const BOOL&
-	) throw()
+    const WORD,
+    const WORD wID,
+    const HWND,
+    const BOOL&
+    ) throw()
 {
-	if (m_isTicking)
-	{
-		const int msgBoxResult = MessageBox(
-			CResourceManager::LoadStringFromResource(IDS_CAUTION_CONFIRM_EXIT),
-			CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
-			MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL
-			);
+    if (m_isTicking)
+    {
+        const int msgBoxResult = MessageBox(
+            CResourceManager::LoadStringFromResource(IDS_CAUTION_CONFIRM_EXIT),
+            CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
+            MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL
+            );
 
-		if (IDNO == msgBoxResult)
-		{
-			return 0;
-		}
-	}
+        if (IDNO == msgBoxResult)
+        {
+            return 0;
+        }
+    }
 
-	CloseDialog(wID);
-	return 0;
+    CloseDialog(wID);
+    return 0;
 }
 
 LRESULT CMainDlg::OnTimerModeAtClick(
-	const WORD,
-	const WORD,
-	const HWND,
-	const BOOL&
-	) throw()
+    const WORD,
+    const WORD,
+    const HWND,
+    const BOOL&
+    ) throw()
 {
-	SetTimerTypeMode(TimerTypeAt);
+    SetTimerTypeMode(TimerTypeAt);
 
-	return 0;
+    return 0;
 }
 
 LRESULT CMainDlg::OnTimerModeInClick(
-	const WORD,
-	const WORD,
-	const HWND,
-	const BOOL&
-	) throw()
+    const WORD,
+    const WORD,
+    const HWND,
+    const BOOL&
+    ) throw()
 {
-	SetTimerTypeMode(TimerTypeIn);
+    SetTimerTypeMode(TimerTypeIn);
 
-	return 0;
+    return 0;
 }
 
 LRESULT CMainDlg::OnTimer(
@@ -182,251 +182,251 @@ LRESULT CMainDlg::OnMove(
 }
 
 LRESULT CMainDlg::OnBtnTimerClick(
-	const WORD,
-	const WORD,
-	const HWND,
-	const BOOL&
-	)
+    const WORD,
+    const WORD,
+    const HWND,
+    const BOOL&
+    )
 {
-	m_shutDownByZeros = false;
+    m_shutDownByZeros = false;
 
-	if (m_isTicking)
-	{
-		EnableUiAndStopCountdown();
-	}
-	else
-	{
-		if (TRUE == RadioIsChecked(IDC_RAD_OFF_IN))
-		{
-			const unsigned short powerOffInHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
-			const unsigned short powerOffInMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
+    if (m_isTicking)
+    {
+        EnableUiAndStopCountdown();
+    }
+    else
+    {
+        if (TRUE == RadioIsChecked(IDC_RAD_OFF_IN))
+        {
+            const unsigned short powerOffInHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
+            const unsigned short powerOffInMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
 
-			m_shutDownByZeros = (
-				(0 == powerOffInHours)
-				&& (0 == powerOffInMinutes)
-				);
+            m_shutDownByZeros = (
+                (0 == powerOffInHours)
+                && (0 == powerOffInMinutes)
+                );
 
-			m_shutDownInSecondsCountdown = powerOffInHours * 3600 + powerOffInMinutes * 60;
-			m_shutDownAt = CTime::GetCurrentTime() + CTimeSpan(0, powerOffInHours, powerOffInMinutes, 0);
-		}
-		else
-		{
-			m_shutDownAtHours = GetComboBoxSelectedItemData(IDC_CMB_AT_HRS);
-			m_shutDownAtMinutes = GetComboBoxSelectedItemData(IDC_CMB_AT_MINS);
+            m_shutDownInSecondsCountdown = powerOffInHours * 3600 + powerOffInMinutes * 60;
+            m_shutDownAt = CTime::GetCurrentTime() + CTimeSpan(0, powerOffInHours, powerOffInMinutes, 0);
+        }
+        else
+        {
+            m_shutDownAtHours = GetComboBoxSelectedItemData(IDC_CMB_AT_HRS);
+            m_shutDownAtMinutes = GetComboBoxSelectedItemData(IDC_CMB_AT_MINS);
 
-			m_shutDownByZeros = (
-				(0 == m_shutDownAtHours)
-				&& (0 == m_shutDownAtMinutes)
-				);
+            m_shutDownByZeros = (
+                (0 == m_shutDownAtHours)
+                && (0 == m_shutDownAtMinutes)
+                );
 
-			const auto currentTime = CTime::GetCurrentTime();
+            const auto currentTime = CTime::GetCurrentTime();
 
-			if (m_shutDownAtHours < currentTime.GetHour())
-			{
-				const auto midNight = CTime(currentTime.GetYear(), currentTime.GetMonth(), currentTime.GetDay(), 23, 59, 59);
-				const auto tomorrow = midNight + CTimeSpan(0, 0, 0, 1);
-				m_shutDownAt = tomorrow + CTimeSpan(0, m_shutDownAtHours, m_shutDownAtMinutes, 0);
-			}
-			else
-			{
-				m_shutDownAt = CTime(
-					currentTime.GetYear(),
-					currentTime.GetMonth(),
-					currentTime.GetDay(),
-					m_shutDownAtHours,
-					m_shutDownAtMinutes,
-					0
-					);
-			}
-		}
+            if (m_shutDownAtHours < currentTime.GetHour())
+            {
+                const auto midNight = CTime(currentTime.GetYear(), currentTime.GetMonth(), currentTime.GetDay(), 23, 59, 59);
+                const auto tomorrow = midNight + CTimeSpan(0, 0, 0, 1);
+                m_shutDownAt = tomorrow + CTimeSpan(0, m_shutDownAtHours, m_shutDownAtMinutes, 0);
+            }
+            else
+            {
+                m_shutDownAt = CTime(
+                    currentTime.GetYear(),
+                    currentTime.GetMonth(),
+                    currentTime.GetDay(),
+                    m_shutDownAtHours,
+                    m_shutDownAtMinutes,
+                    0
+                    );
+            }
+        }
 
-		if (m_shutDownByZeros)
-		{
-			ProcessShutdownByZerosCase();
+        if (m_shutDownByZeros)
+        {
+            ProcessShutdownByZerosCase();
 
-			return 0;
-		}
+            return 0;
+        }
 
-		DisableUiAndStartCountdown();
+        DisableUiAndStartCountdown();
 
-		m_isCautionMessageAlreadyShown = false;
-	}
+        m_isCautionMessageAlreadyShown = false;
+    }
 
-	m_isTicking = !m_isTicking;
+    m_isTicking = !m_isTicking;
 
-	return 0;
+    return 0;
 }
 
 void CMainDlg::CloseDialog(
-	const int nVal
-	) throw()
+    const int nVal
+    ) throw()
 {
-	DestroyWindow();
-	::PostQuitMessage(nVal);
+    DestroyWindow();
+    ::PostQuitMessage(nVal);
 }
 
 void CMainDlg::SetTimerTypeMode(
-	const TimerType& timerType
-	) throw()
+    const TimerType& timerType
+    ) throw()
 {
-	const BOOL shouldSetTimerTypeIn = (TimerTypeIn == timerType ? TRUE : FALSE);
+    const BOOL shouldSetTimerTypeIn = (TimerTypeIn == timerType ? TRUE : FALSE);
 
-	EnableOrDisableShutdownAtControls(!shouldSetTimerTypeIn);
+    EnableOrDisableShutdownAtControls(!shouldSetTimerTypeIn);
 
-	EnableOrDisableShutdownInControls(shouldSetTimerTypeIn);
+    EnableOrDisableShutdownInControls(shouldSetTimerTypeIn);
 
-	m_timerType = timerType;
+    m_timerType = timerType;
 }
 
 void CMainDlg::SetPowerOffTypeMode(
-	const PowerOffType& powerOffType
-	) throw()
+    const PowerOffType& powerOffType
+    ) throw()
 {
-	const BOOL isHibernateAllowed = IsPwrHibernateAllowed();
-	const BOOL isSuspendAllowed = IsPwrSuspendAllowed();
+    const BOOL isHibernateAllowed = IsPwrHibernateAllowed();
+    const BOOL isSuspendAllowed = IsPwrSuspendAllowed();
 
-	EnableOrDisableControl(IDC_RAD_PWR_HIBERNATE, isHibernateAllowed);
-	EnableOrDisableControl(IDC_RAD_PWR_SLEEP, isSuspendAllowed);
+    EnableOrDisableControl(IDC_RAD_PWR_HIBERNATE, isHibernateAllowed);
+    EnableOrDisableControl(IDC_RAD_PWR_SLEEP, isSuspendAllowed);
 
-	int activePowerButtonId = 0;
+    int activePowerButtonId = 0;
 
-	switch (powerOffType)
-	{
-	case PowerOffTypeHibernate:
-	{
-		if (isHibernateAllowed)
-		{
-			activePowerButtonId = IDC_RAD_PWR_HIBERNATE;
-		}
-	}
-		break;
+    switch (powerOffType)
+    {
+    case PowerOffTypeHibernate:
+    {
+        if (isHibernateAllowed)
+        {
+            activePowerButtonId = IDC_RAD_PWR_HIBERNATE;
+        }
+    }
+        break;
 
-	case PowerOffTypeSuspend:
-	{
-		if (isSuspendAllowed)
-		{
-			activePowerButtonId = IDC_RAD_PWR_SLEEP;
-		}
-	}
-		break;
-	}
+    case PowerOffTypeSuspend:
+    {
+        if (isSuspendAllowed)
+        {
+            activePowerButtonId = IDC_RAD_PWR_SLEEP;
+        }
+    }
+        break;
+    }
 
-	if (0 == activePowerButtonId)
-	{
-		activePowerButtonId = IDC_RAD_PWR_OFF;
-	}
+    if (0 == activePowerButtonId)
+    {
+        activePowerButtonId = IDC_RAD_PWR_OFF;
+    }
 
-	CheckRadioButton(
-		IDC_RAD_PWR_OFF,
-		IDC_RAD_PWR_SLEEP,
-		activePowerButtonId
-		);
+    CheckRadioButton(
+        IDC_RAD_PWR_OFF,
+        IDC_RAD_PWR_SLEEP,
+        activePowerButtonId
+        );
 }
 
 void CMainDlg::FillCombo(
-	const int comboId,
-	const std::vector<unsigned short>& comboValues,
-	const unsigned short selectedItemIdx
-	) const
+    const int comboId,
+    const std::vector<unsigned short>& comboValues,
+    const unsigned short selectedItemIdx
+    ) const
 {
-	auto someCombo = static_cast<CComboBox>(GetDlgItem(comboId));
+    auto someCombo = static_cast<CComboBox>(GetDlgItem(comboId));
 
-	for (const auto& p : comboValues)
-	{
-		CString comboText;
-		comboText.Format(L"%s%d", p < 10 ? L"0" : L"", p);
+    for (const auto& p : comboValues)
+    {
+        CString comboText;
+        comboText.Format(L"%s%d", p < 10 ? L"0" : L"", p);
 
-		const auto newStringIdx = someCombo.AddString(comboText);
-		someCombo.SetItemData(newStringIdx, p);
-	}
+        const auto newStringIdx = someCombo.AddString(comboText);
+        someCombo.SetItemData(newStringIdx, p);
+    }
 
-	if (comboValues.size() > selectedItemIdx)
-	{
-		someCombo.SetCurSel(selectedItemIdx);
-	}
+    if (comboValues.size() > selectedItemIdx)
+    {
+        someCombo.SetCurSel(selectedItemIdx);
+    }
 }
 
 void CMainDlg::FillHoursCombo(
-	const int comboId,
-	const unsigned short selectedIndex
+    const int comboId,
+    const unsigned short selectedIndex
     ) const
 {
-	std::vector<unsigned short> comboHoursValues;
+    std::vector<unsigned short> comboHoursValues;
 
-	for (unsigned short i = 0; i <= 23; i++)
-	{
-		comboHoursValues.push_back(i);
-	}
+    for (unsigned short i = 0; i <= 23; i++)
+    {
+        comboHoursValues.push_back(i);
+    }
 
-	FillCombo(comboId, comboHoursValues, selectedIndex);
+    FillCombo(comboId, comboHoursValues, selectedIndex);
 }
 
 void CMainDlg::FillMinutesCombo(const int comboId) const
 {
-	std::vector<unsigned short> comboMinutesValues;
+    std::vector<unsigned short> comboMinutesValues;
 
-	for (unsigned short i = 0; i < 12; i++)
-	{
-		comboMinutesValues.push_back(i * 5);
-	}
+    for (unsigned short i = 0; i < 12; i++)
+    {
+        comboMinutesValues.push_back(i * 5);
+    }
 
-	FillCombo(comboId, comboMinutesValues, 0);
+    FillCombo(comboId, comboMinutesValues, 0);
 }
 
 void CMainDlg::ShowCurrentTime(void) const throw()
 {
-	GetDlgItem(IDC_LBL_TIME).SetWindowTextW(
-		CTime::GetCurrentTime().Format(TIMER_MASK)
-		);
+    GetDlgItem(IDC_LBL_TIME).SetWindowTextW(
+        CTime::GetCurrentTime().Format(TIMER_MASK)
+        );
 }
 
 void CMainDlg::ProcessCountDown(void) throw()
 {
-	if (!m_isTicking)
-	{
-		return;
-	}
+    if (!m_isTicking)
+    {
+        return;
+    }
 
-	if (m_timerType == TimerTypeIn)
-	{
-		m_shutDownInSecondsCountdown--;
-	}
+    if (m_timerType == TimerTypeIn)
+    {
+        m_shutDownInSecondsCountdown--;
+    }
 
-	ShowCountDown();
+    ShowCountDown();
 }
 
 void CMainDlg::ProcessShutdownOption(void) throw()
 {
-	if (!m_isTicking)
-	{
-		return;
-	}
+    if (!m_isTicking)
+    {
+        return;
+    }
 
     const auto currentPowerOffType = static_cast<PowerOffType>(GetPowerOffType());
 
-	bool currentTimeIsCautionTime;
-	bool currentTimeIsShutdownTime;
+    bool currentTimeIsCautionTime;
+    bool currentTimeIsShutdownTime;
 
     const auto currentTime = CTime::GetCurrentTime();
 
-	if (m_timerType == TimerTypeAt)
-	{
-		const auto currentTimePlusOneMinute = currentTime + CTimeSpan(0, 0, 1, 0);
+    if (m_timerType == TimerTypeAt)
+    {
+        const auto currentTimePlusOneMinute = currentTime + CTimeSpan(0, 0, 1, 0);
 
-		currentTimeIsCautionTime = (
-			currentTimePlusOneMinute.GetHour() == m_shutDownAtHours
-			&& currentTimePlusOneMinute.GetMinute() == m_shutDownAtMinutes
-			);
+        currentTimeIsCautionTime = (
+            currentTimePlusOneMinute.GetHour() == m_shutDownAtHours
+            && currentTimePlusOneMinute.GetMinute() == m_shutDownAtMinutes
+            );
 
-		currentTimeIsShutdownTime = (
-			m_shutDownAt <= CTime::GetCurrentTime()
-			);
-	}
-	else
-	{
-		currentTimeIsCautionTime = m_shutDownInSecondsCountdown <= 60;
-		currentTimeIsShutdownTime = m_shutDownInSecondsCountdown <= 0;
-	}
+        currentTimeIsShutdownTime = (
+            m_shutDownAt <= CTime::GetCurrentTime()
+            );
+    }
+    else
+    {
+        currentTimeIsCautionTime = m_shutDownInSecondsCountdown <= 60;
+        currentTimeIsShutdownTime = m_shutDownInSecondsCountdown <= 0;
+    }
 
     if (currentTimeIsCautionTime && !m_isCautionMessageAlreadyShown)
     {
@@ -479,93 +479,93 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 }
 
 bool CMainDlg::RadioIsChecked(
-	const UINT_PTR radioButtonId
-	) const throw()
+    const UINT_PTR radioButtonId
+    ) const throw()
 {
-	return (
-		GetDlgItem(radioButtonId).SendMessageW(BM_GETCHECK, 0, 0L) != 0
-		);
+    return (
+        GetDlgItem(radioButtonId).SendMessageW(BM_GETCHECK, 0, 0L) != 0
+        );
 }
 
 void CMainDlg::EnableOrDisableShutdownAtControls(
-	const BOOL ctrlsAreEnabled
-	) const throw()
+    const BOOL ctrlsAreEnabled
+    ) const throw()
 {
-	EnableOrDisableControl(IDC_CMB_AT_HRS, ctrlsAreEnabled);
-	EnableOrDisableControl(IDC_LBL_AT, ctrlsAreEnabled);
-	EnableOrDisableControl(IDC_CMB_AT_MINS, ctrlsAreEnabled);
-	EnableOrDisableControl(IDC_LBL_AT_MINS, ctrlsAreEnabled);
+    EnableOrDisableControl(IDC_CMB_AT_HRS, ctrlsAreEnabled);
+    EnableOrDisableControl(IDC_LBL_AT, ctrlsAreEnabled);
+    EnableOrDisableControl(IDC_CMB_AT_MINS, ctrlsAreEnabled);
+    EnableOrDisableControl(IDC_LBL_AT_MINS, ctrlsAreEnabled);
 }
 
 void CMainDlg::EnableOrDisableShutdownInControls(
-	const BOOL ctrlsAreEnabled
-	) const throw()
+    const BOOL ctrlsAreEnabled
+    ) const throw()
 {
-	EnableOrDisableControl(IDC_CMB_IN_HRS, ctrlsAreEnabled);
-	EnableOrDisableControl(IDC_LBL_IN_HRS, ctrlsAreEnabled);
-	EnableOrDisableControl(IDC_CMB_IN_MINS, ctrlsAreEnabled);
-	EnableOrDisableControl(IDC_LBL_IN_MINS, ctrlsAreEnabled);
+    EnableOrDisableControl(IDC_CMB_IN_HRS, ctrlsAreEnabled);
+    EnableOrDisableControl(IDC_LBL_IN_HRS, ctrlsAreEnabled);
+    EnableOrDisableControl(IDC_CMB_IN_MINS, ctrlsAreEnabled);
+    EnableOrDisableControl(IDC_LBL_IN_MINS, ctrlsAreEnabled);
 }
 
 void CMainDlg::ShowCountDown(void) const throw()
 {
-	const CTime currentTime = CTime::GetCurrentTime();
-	const CTimeSpan countDownValue = m_shutDownAt - currentTime;
+    const CTime currentTime = CTime::GetCurrentTime();
+    const CTimeSpan countDownValue = m_shutDownAt - currentTime;
 
-	CWindow lblCountDown = GetDlgItem(IDC_LBL_OFF_ELPSD);
+    CWindow lblCountDown = GetDlgItem(IDC_LBL_OFF_ELPSD);
 
-	if (countDownValue.GetTotalSeconds() > 0)
-	{
-		lblCountDown.SetWindowTextW(
-			countDownValue.Format(TIMER_MASK)
-			);
-	}
-	else
-	{
-		lblCountDown.SetWindowTextW(
-			L"00:00:00"
-			);
-	}
+    if (countDownValue.GetTotalSeconds() > 0)
+    {
+        lblCountDown.SetWindowTextW(
+            countDownValue.Format(TIMER_MASK)
+            );
+    }
+    else
+    {
+        lblCountDown.SetWindowTextW(
+            L"00:00:00"
+            );
+    }
 }
 
 void CMainDlg::EnableOrDisableControl(
-	const int controlId,
-	const BOOL ctrIsEnabled
-	) const throw()
+    const int controlId,
+    const BOOL ctrIsEnabled
+    ) const throw()
 {
-	GetDlgItem(controlId).EnableWindow(ctrIsEnabled);
+    GetDlgItem(controlId).EnableWindow(ctrIsEnabled);
 }
 
 void CMainDlg::DisableControl(
-	const int controlId
-	) const throw()
+    const int controlId
+    ) const throw()
 {
-	EnableOrDisableControl(controlId, FALSE);
+    EnableOrDisableControl(controlId, FALSE);
 }
 
 void CMainDlg::EnableControl(
-	const int controlId
-	) const throw()
+    const int controlId
+    ) const throw()
 {
-	EnableOrDisableControl(controlId);
+    EnableOrDisableControl(controlId);
 }
 
 BOOL CMainDlg::IsWindows8(void) throw()
 {
-	OSVERSIONINFO osvi;
-	
-	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    OSVERSIONINFO osvi;
+    
+    ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 
-	if (FALSE == GetVersionEx(&osvi))
-	{
-		return FALSE;
-	}
+    if (FALSE == GetVersionEx(&osvi))
+    {
+        return FALSE;
+    }
 
-	return (
-		(osvi.dwMajorVersion >= 6)
-		&& (osvi.dwMinorVersion >= 2)
-		);
+    return (
+        (osvi.dwMajorVersion >= 6)
+        && (osvi.dwMinorVersion >= 2)
+        );
 }
 
 BOOL CMainDlg::GetWindowTopLeftPositionFromRegistry(POINTS& topLeftPoint) noexcept
