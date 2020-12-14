@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ResourceManager.h"
 
-const CString CResourceManager::LoadStringFromResource(
+CString CResourceManager::LoadStringFromResource(
     const UINT stringId
 ) noexcept
 {
