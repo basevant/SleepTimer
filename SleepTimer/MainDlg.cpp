@@ -6,6 +6,8 @@
 #include "resource.h"
 #include "MainDlg.h"
 
+#include "SettingsRegistryStorage.h"
+
 CMainDlg::CMainDlg():
     m_timerType()
 {
@@ -56,7 +58,7 @@ LRESULT CMainDlg::OnInitDialog(
     ZeroMemory(&topLeftWindowPointFromRegistry, sizeof(POINTS));
 
     auto const windowHasBeenMoved = (
-        (TRUE == GetWindowTopLeftPositionFromRegistry(topLeftWindowPointFromRegistry))
+        (TRUE == CSettingsRegistryStorage().ReadWindowPosition(topLeftWindowPointFromRegistry))
         && (TRUE == MoveWindowPositionToSavedPosition(topLeftWindowPointFromRegistry))
         );
 
@@ -209,7 +211,7 @@ LRESULT CMainDlg::OnMove(
     const BOOL&
 ) noexcept
 {
-    SaveWindowPosition(MAKEPOINTS(lParam));
+    CSettingsRegistryStorage().WriteWindowPosition(MAKEPOINTS(lParam));
 
     return 0;
 }
@@ -411,14 +413,14 @@ void CMainDlg::FillMinutesCombo(const int comboId) const
     FillCombo(comboId, comboMinutesValues, 0);
 }
 
-void CMainDlg::ShowCurrentTime(void) const noexcept
+void CMainDlg::ShowCurrentTime() const noexcept
 {
     GetDlgItem(IDC_LBL_TIME).SetWindowTextW(
         CTime::GetCurrentTime().Format(TIMER_MASK)
         );
 }
 
-void CMainDlg::ProcessCountDown(void) noexcept
+void CMainDlg::ProcessCountDown() noexcept
 {
     if (!m_isTicking)
     {
@@ -433,7 +435,7 @@ void CMainDlg::ProcessCountDown(void) noexcept
     ShowCountDown();
 }
 
-void CMainDlg::ProcessShutdownOption(void) noexcept
+void CMainDlg::ProcessShutdownOption()
 {
     if (!m_isTicking)
     {
@@ -470,6 +472,9 @@ void CMainDlg::ProcessShutdownOption(void) noexcept
     {
         m_isCautionMessageAlreadyShown = true;
 
+        //  minimize possible active window (like media player in full screen mode)
+        //
+
         auto* const hWndForegroundWindow = GetForegroundWindow();
         if (
             (nullptr != hWndForegroundWindow)
@@ -500,8 +505,7 @@ void CMainDlg::ProcessShutdownOption(void) noexcept
 
         if (IDYES == stopShutdownCautionMessageBoxResult)
         {
-            ::SendDlgItemMessage(
-                m_hWnd,
+            SendDlgItemMessage(
                 IDC_BTN_START,
                 BM_CLICK,
                 0,
@@ -545,12 +549,12 @@ void CMainDlg::EnableOrDisableShutdownInControls(
     EnableOrDisableControl(IDC_LBL_IN_MINS, ctrlsAreEnabled);
 }
 
-void CMainDlg::ShowCountDown(void) const noexcept
+void CMainDlg::ShowCountDown() const noexcept
 {
-    const CTime currentTime = CTime::GetCurrentTime();
-    const CTimeSpan countDownValue = m_shutDownAt - currentTime;
+    const auto currentTime = CTime::GetCurrentTime();
+    const auto countDownValue = m_shutDownAt - currentTime;
 
-    CWindow lblCountDown = GetDlgItem(IDC_LBL_OFF_ELPSD);
+    auto lblCountDown = GetDlgItem(IDC_LBL_OFF_ELPSD);
 
     if (countDownValue.GetTotalSeconds() > 0)
     {
@@ -588,10 +592,10 @@ void CMainDlg::EnableControl(
     EnableOrDisableControl(controlId);
 }
 
-BOOL CMainDlg::IsWindows8(void) noexcept
+BOOL CMainDlg::IsWindows8() noexcept
 {
     OSVERSIONINFO osvi;
-    
+
     ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 
@@ -606,94 +610,6 @@ BOOL CMainDlg::IsWindows8(void) noexcept
         );
 }
 
-BOOL CMainDlg::GetWindowTopLeftPositionFromRegistry(POINTS& topLeftPoint) noexcept
-{
-    DWORD dwX;
-    if (TRUE != ReadDwordRegValue(SLEEP_TIMER_REG_PARAM_WND_X_POS, dwX))
-    {
-        return FALSE;
-    }
-
-    DWORD dwY;
-    if (TRUE != ReadDwordRegValue(SLEEP_TIMER_REG_PARAM_WND_Y_POS, dwY))
-    {
-        return FALSE;
-    }
-
-    SecureZeroMemory(&topLeftPoint, sizeof(POINTS));
-
-    topLeftPoint.x = (SHORT)dwX;
-    topLeftPoint.y = (SHORT)dwY;
-
-    return TRUE;
-}
-
-BOOL CMainDlg::ReadDwordRegValue(
-    LPCWSTR lpValueName,
-    DWORD& refValue
-) noexcept
-{
-    HKEY hKey;
-
-    LSTATUS lStatus = RegOpenKeyExW(
-        HKEY_CURRENT_USER,
-        SLEEP_TIMER_REG_KEY,
-        0,
-        KEY_READ,
-        &hKey
-    );
-
-    if (lStatus != ERROR_SUCCESS)
-    {
-        return FALSE;
-    }
-
-    DWORD dwDataSize = 0;
-
-    lStatus = RegQueryValueExW(
-        hKey,
-        lpValueName,
-        NULL,
-        NULL,
-        NULL,
-        &dwDataSize
-    );
-
-    if (lStatus != ERROR_SUCCESS)
-    {
-        RegCloseKey(hKey);
-        hKey = NULL;
-
-        return FALSE;
-    }
-
-    DWORD regValue;
-
-    lStatus = RegQueryValueExW(
-        hKey,
-        lpValueName,
-        NULL,
-        NULL,
-        (LPBYTE)&regValue,
-        &dwDataSize
-    );
-
-    if (lStatus != ERROR_SUCCESS)
-    {
-        RegCloseKey(hKey);
-        hKey = NULL;
-
-        return FALSE;
-    }
-
-    refValue = regValue;
-
-    RegCloseKey(hKey);
-    hKey = NULL;
-
-    return TRUE;
-}
-
 BOOL CMainDlg::MoveWindowPositionToSavedPosition(
     POINTS topLeftWindowPointFromRegistry
 ) noexcept
@@ -706,96 +622,6 @@ BOOL CMainDlg::MoveWindowPositionToSavedPosition(
         -1,
         SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE
     );
-}
-
-BOOL CMainDlg::SaveWindowPosition(
-    POINTS currentWindowPosition
-) noexcept
-{
-    HKEY hKey;
-
-    LSTATUS lStatus = RegOpenKeyExW(
-        HKEY_CURRENT_USER,
-        SLEEP_TIMER_REG_KEY,
-        0,
-        KEY_WRITE,
-        &hKey
-    );
-
-    if (lStatus != ERROR_SUCCESS)
-    {
-        if (lStatus == ERROR_FILE_NOT_FOUND)
-        {
-            lStatus = RegCreateKey(
-                HKEY_CURRENT_USER,
-                SLEEP_TIMER_REG_KEY,
-                &hKey
-            );
-
-            if (lStatus != ERROR_SUCCESS)
-            {
-                return FALSE;
-            }
-        }
-        else
-        {
-            return FALSE;
-        }
-    }
-
-    const DWORD windowCaptionAreaHeight = static_cast<DWORD>(GetSystemMetrics(SM_CYCAPTION));
-    const DWORD verticalBorderWidth = static_cast<DWORD>(GetSystemMetrics(SM_CYFIXEDFRAME));
-    const DWORD horizontalBorderHeight = static_cast<DWORD>(GetSystemMetrics(SM_CXFIXEDFRAME));
-
-    const DWORD dwPosX = (
-        static_cast<DWORD>(currentWindowPosition.x)
-        - verticalBorderWidth
-        );
-
-    const DWORD dwPosY = (
-        static_cast<DWORD>(currentWindowPosition.y)
-        - windowCaptionAreaHeight
-        - horizontalBorderHeight
-        );
-
-    lStatus = RegSetValueExW(
-        hKey,
-        SLEEP_TIMER_REG_PARAM_WND_X_POS,
-        0,
-        REG_DWORD,
-        (const BYTE*)&dwPosX,
-        sizeof(dwPosX)
-    );
-
-    if (lStatus != ERROR_SUCCESS)
-    {
-        RegCloseKey(hKey);
-        hKey = NULL;
-
-        return FALSE;
-    }
-
-    lStatus = RegSetValueExW(
-        hKey,
-        SLEEP_TIMER_REG_PARAM_WND_Y_POS,
-        0,
-        REG_DWORD,
-        (const BYTE*)&dwPosY,
-        sizeof(dwPosY)
-    );
-
-    if (lStatus != ERROR_SUCCESS)
-    {
-        RegCloseKey(hKey);
-        hKey = NULL;
-
-        return FALSE;
-    }
-
-    RegCloseKey(hKey);
-    hKey = NULL;
-
-    return TRUE;
 }
 
 byte CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const

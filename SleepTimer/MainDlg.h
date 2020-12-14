@@ -6,10 +6,6 @@
 
 #include "ResourceManager.h"
 
-constexpr auto SLEEP_TIMER_REG_KEY = L"Software\\SleepTimer";
-constexpr auto SLEEP_TIMER_REG_PARAM_WND_X_POS = L"X";
-constexpr auto SLEEP_TIMER_REG_PARAM_WND_Y_POS = L"Y";
-
 class CMainDlg :
     public CDialogImpl<CMainDlg>,
     public CUpdateUI<CMainDlg>,
@@ -182,17 +178,17 @@ private:
 
     void FillMinutesCombo(const int comboId) const;
 
-    void ShowCurrentTime(void) const noexcept;
+    void ShowCurrentTime() const noexcept;
 
-    void ProcessCountDown(void) noexcept;
+    void ProcessCountDown() noexcept;
 
-    void ProcessShutdownOption(void) noexcept;
+    void ProcessShutdownOption();
 
     bool RadioIsChecked(
         const UINT_PTR radioButtonId
         ) const noexcept;
 
-    void ShowCountDown(void)const noexcept;
+    void ShowCountDown()const noexcept;
 
     void EnableOrDisableShutdownAtControls(
         const BOOL ctrlsAreEnabled
@@ -215,21 +211,10 @@ private:
         const int controlId
         ) const noexcept;
 
-    static BOOL IsWindows8(void) noexcept;
-
-    static BOOL GetWindowTopLeftPositionFromRegistry(POINTS& refTopLeftPoint) noexcept;
-
-    static BOOL ReadDwordRegValue(
-        LPCWSTR lpValueName,
-        DWORD& refValue
-    ) noexcept;
+    static BOOL IsWindows8() noexcept;
 
     BOOL MoveWindowPositionToSavedPosition(
         POINTS topLeftWindowPointFromRegistry
-    ) noexcept;
-
-    BOOL SaveWindowPosition(
-        POINTS currentWindowPosition
     ) noexcept;
 
     byte GetComboBoxSelectedItemData(const int comboBoxId) const;
