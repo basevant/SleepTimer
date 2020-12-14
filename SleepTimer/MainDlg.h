@@ -51,14 +51,14 @@ public:
         const WPARAM,
         const LPARAM,
         const BOOL&
-        ) throw();
+        );
 
     LRESULT OnDestroy(
         const UINT,
         const WPARAM,
         const LPARAM,
         const BOOL&
-        ) throw();
+        );
 
     LRESULT OnTimer(
         const UINT,
@@ -72,7 +72,7 @@ public:
         const WPARAM,
         const LPARAM lParam,
         const BOOL&
-    ) throw();
+    ) noexcept;
 
     /*									*/
     /*									*/
@@ -87,24 +87,24 @@ public:
 
     LRESULT OnCancel(
         const WORD,
-        const WORD wID,
-        const HWND,
+        const WORD wId,
+        HWND,
         const BOOL&
-        ) throw();
+        ) noexcept;
 
     LRESULT OnTimerModeAtClick(
         const WORD,
         const WORD,
         const HWND,
         const BOOL&
-        ) throw();
+        ) noexcept;
 
     LRESULT OnTimerModeInClick(
         const WORD,
         const WORD,
         const HWND,
         const BOOL&
-        ) throw();
+        ) noexcept;
 
     LRESULT OnBtnTimerClick(
         const WORD,
@@ -120,7 +120,7 @@ public:
 
     void CloseDialog(
         const int nVal
-        ) throw();
+        ) noexcept;
 
     CMainDlg();
 
@@ -144,27 +144,27 @@ private:
         PowerOffTypeHibernate = 2
     };
 
-    bool m_isTicking;
+    bool m_isTicking = false;
 
     CTime m_shutDownAt;
 
-    byte m_shutDownAtHours;
-    byte m_shutDownAtMinutes;
+    byte m_shutDownAtHours = 0;
+    byte m_shutDownAtMinutes = 0;
 
-    int m_shutDownInSecondsCountdown;
+    int m_shutDownInSecondsCountdown = 0;
 
-    bool m_shutDownByZeros;
+    bool m_shutDownByZeros = false;
     TimerType m_timerType;
 
-    bool m_isCautionMessageAlreadyShown;
+    bool m_isCautionMessageAlreadyShown = false;
 
     void SetTimerTypeMode(
         const TimerType& timerType
-        ) throw();
+        ) noexcept;
 
     void SetPowerOffTypeMode(
         const PowerOffType& powerOffType
-        ) throw();
+        ) noexcept;
 
     void FillCombo(
         const int comboId,
@@ -179,40 +179,40 @@ private:
 
     void FillMinutesCombo(const int comboId) const;
 
-    void ShowCurrentTime(void) const throw();
+    void ShowCurrentTime(void) const noexcept;
 
-    void ProcessCountDown(void) throw();
+    void ProcessCountDown(void) noexcept;
 
-    void ProcessShutdownOption(void) throw();
+    void ProcessShutdownOption(void) noexcept;
 
     bool RadioIsChecked(
         const UINT_PTR radioButtonId
-        ) const throw();
+        ) const noexcept;
 
-    void ShowCountDown(void)const throw();
+    void ShowCountDown(void)const noexcept;
 
     void EnableOrDisableShutdownAtControls(
         const BOOL ctrlsAreEnabled
-        ) const throw();
+        ) const noexcept;
 
     void EnableOrDisableShutdownInControls(
         const BOOL ctrlsAreEnabled
-        ) const throw();
+        ) const noexcept;
 
     void EnableOrDisableControl(
         const int controlId,
         const BOOL ctrIsEnabled = 1
-        ) const throw();
+        ) const noexcept;
 
     void DisableControl(
         const int controlId
-        ) const throw();
+        ) const noexcept;
 
     void EnableControl(
         const int controlId
-        ) const throw();
+        ) const noexcept;
 
-    static BOOL IsWindows8(void) throw();
+    static BOOL IsWindows8(void) noexcept;
 
     static BOOL GetWindowTopLeftPositionFromRegistry(POINTS& refTopLeftPoint) noexcept;
 

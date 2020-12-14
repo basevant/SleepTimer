@@ -6,12 +6,9 @@
 #include "resource.h"
 #include "MainDlg.h"
 
-CMainDlg::CMainDlg()
+CMainDlg::CMainDlg():
+    m_timerType()
 {
-    m_isTicking = false;
-    m_shutDownByZeros = false;
-    m_shutDownInSecondsCountdown = 0;
-    m_isCautionMessageAlreadyShown = false;
 }
 
 BOOL CMainDlg::PreTranslateMessage(MSG* pMsg)
@@ -30,12 +27,12 @@ LRESULT CMainDlg::OnInitDialog(
     const WPARAM,
     const LPARAM,
     const BOOL&
-    ) throw()
+    )
 {
     POINTS topLeftWindowPointFromRegistry;
     ZeroMemory(&topLeftWindowPointFromRegistry, sizeof(POINTS));
 
-    const bool windowHasBeenMoved = (
+    auto const windowHasBeenMoved = (
         (TRUE == GetWindowTopLeftPositionFromRegistry(topLeftWindowPointFromRegistry))
         && (TRUE == MoveWindowPositionToSavedPosition(topLeftWindowPointFromRegistry))
         );
@@ -47,14 +44,27 @@ LRESULT CMainDlg::OnInitDialog(
     }
 
     // set icons
-    HICON hIcon = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON));
+    auto *const hIcon = AtlLoadIconImage(
+        IDR_MAINFRAME,
+        LR_DEFAULTCOLOR,
+        ::GetSystemMetrics(SM_CXICON),
+        ::GetSystemMetrics(SM_CYICON)
+    );
+
     SetIcon(hIcon, TRUE);
-    HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
+
+    auto *const hIconSmall = AtlLoadIconImage(
+        IDR_MAINFRAME,
+        LR_DEFAULTCOLOR,
+        ::GetSystemMetrics(SM_CXSMICON),
+        ::GetSystemMetrics(SM_CYSMICON)
+    );
+
     SetIcon(hIconSmall, FALSE);
 
     // register object for message filtering and idle updates
-    CMessageLoop* pLoop = _Module.GetMessageLoop();
-    ATLASSERT(pLoop != NULL);
+    auto *const pLoop = _Module.GetMessageLoop();
+    ATLASSERT(pLoop != nullptr);
     pLoop->AddMessageFilter(this);
 
     UIAddChildWindowContainer(m_hWnd);
@@ -86,14 +96,14 @@ LRESULT CMainDlg::OnDestroy(
     const WPARAM,
     const LPARAM,
     const BOOL&
-    ) throw()
+    )
 {
     StopShutdownTimer();
     StopCurrentTimeTimer();
 
     // unregister message filtering and idle updates
-    CMessageLoop* pLoop = _Module.GetMessageLoop();
-    ATLASSERT(pLoop != NULL);
+    auto * pLoop = _Module.GetMessageLoop();
+    ATLASSERT(pLoop != nullptr);
     pLoop->RemoveMessageFilter(this);
 
     return 0;
@@ -101,14 +111,14 @@ LRESULT CMainDlg::OnDestroy(
 
 LRESULT CMainDlg::OnCancel(
     const WORD,
-    const WORD wID,
+    const WORD wId,
     const HWND,
     const BOOL&
-    ) throw()
+    ) noexcept
 {
     if (m_isTicking)
     {
-        const int msgBoxResult = MessageBox(
+        const auto msgBoxResult = MessageBox(
             CResourceManager::LoadStringFromResource(IDS_CAUTION_CONFIRM_EXIT),
             CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
             MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL
@@ -120,7 +130,7 @@ LRESULT CMainDlg::OnCancel(
         }
     }
 
-    CloseDialog(wID);
+    CloseDialog(wId);
     return 0;
 }
 
@@ -129,7 +139,7 @@ LRESULT CMainDlg::OnTimerModeAtClick(
     const WORD,
     const HWND,
     const BOOL&
-    ) throw()
+    ) noexcept
 {
     SetTimerTypeMode(TimerTypeAt);
 
@@ -141,7 +151,7 @@ LRESULT CMainDlg::OnTimerModeInClick(
     const WORD,
     const HWND,
     const BOOL&
-    ) throw()
+    ) noexcept
 {
     SetTimerTypeMode(TimerTypeIn);
 
@@ -259,7 +269,7 @@ LRESULT CMainDlg::OnBtnTimerClick(
 
 void CMainDlg::CloseDialog(
     const int nVal
-    ) throw()
+    ) noexcept
 {
     DestroyWindow();
     ::PostQuitMessage(nVal);
@@ -267,9 +277,9 @@ void CMainDlg::CloseDialog(
 
 void CMainDlg::SetTimerTypeMode(
     const TimerType& timerType
-    ) throw()
+    ) noexcept
 {
-    const BOOL shouldSetTimerTypeIn = (TimerTypeIn == timerType ? TRUE : FALSE);
+    const auto shouldSetTimerTypeIn = (TimerTypeIn == timerType ? TRUE : FALSE);
 
     EnableOrDisableShutdownAtControls(!shouldSetTimerTypeIn);
 
@@ -280,15 +290,15 @@ void CMainDlg::SetTimerTypeMode(
 
 void CMainDlg::SetPowerOffTypeMode(
     const PowerOffType& powerOffType
-    ) throw()
+    ) noexcept
 {
-    const BOOL isHibernateAllowed = IsPwrHibernateAllowed();
-    const BOOL isSuspendAllowed = IsPwrSuspendAllowed();
+    const auto isHibernateAllowed = IsPwrHibernateAllowed();
+    const auto isSuspendAllowed = IsPwrSuspendAllowed();
 
     EnableOrDisableControl(IDC_RAD_PWR_HIBERNATE, isHibernateAllowed);
     EnableOrDisableControl(IDC_RAD_PWR_SLEEP, isSuspendAllowed);
 
-    int activePowerButtonId = 0;
+    auto activePowerButtonId = 0;
 
     switch (powerOffType)
     {
@@ -373,14 +383,14 @@ void CMainDlg::FillMinutesCombo(const int comboId) const
     FillCombo(comboId, comboMinutesValues, 0);
 }
 
-void CMainDlg::ShowCurrentTime(void) const throw()
+void CMainDlg::ShowCurrentTime(void) const noexcept
 {
     GetDlgItem(IDC_LBL_TIME).SetWindowTextW(
         CTime::GetCurrentTime().Format(TIMER_MASK)
         );
 }
 
-void CMainDlg::ProcessCountDown(void) throw()
+void CMainDlg::ProcessCountDown(void) noexcept
 {
     if (!m_isTicking)
     {
@@ -395,7 +405,7 @@ void CMainDlg::ProcessCountDown(void) throw()
     ShowCountDown();
 }
 
-void CMainDlg::ProcessShutdownOption(void) throw()
+void CMainDlg::ProcessShutdownOption(void) noexcept
 {
     if (!m_isTicking)
     {
@@ -480,7 +490,7 @@ void CMainDlg::ProcessShutdownOption(void) throw()
 
 bool CMainDlg::RadioIsChecked(
     const UINT_PTR radioButtonId
-    ) const throw()
+    ) const noexcept
 {
     return (
         GetDlgItem(radioButtonId).SendMessageW(BM_GETCHECK, 0, 0L) != 0
@@ -489,7 +499,7 @@ bool CMainDlg::RadioIsChecked(
 
 void CMainDlg::EnableOrDisableShutdownAtControls(
     const BOOL ctrlsAreEnabled
-    ) const throw()
+    ) const noexcept
 {
     EnableOrDisableControl(IDC_CMB_AT_HRS, ctrlsAreEnabled);
     EnableOrDisableControl(IDC_LBL_AT, ctrlsAreEnabled);
@@ -499,7 +509,7 @@ void CMainDlg::EnableOrDisableShutdownAtControls(
 
 void CMainDlg::EnableOrDisableShutdownInControls(
     const BOOL ctrlsAreEnabled
-    ) const throw()
+    ) const noexcept
 {
     EnableOrDisableControl(IDC_CMB_IN_HRS, ctrlsAreEnabled);
     EnableOrDisableControl(IDC_LBL_IN_HRS, ctrlsAreEnabled);
@@ -507,7 +517,7 @@ void CMainDlg::EnableOrDisableShutdownInControls(
     EnableOrDisableControl(IDC_LBL_IN_MINS, ctrlsAreEnabled);
 }
 
-void CMainDlg::ShowCountDown(void) const throw()
+void CMainDlg::ShowCountDown(void) const noexcept
 {
     const CTime currentTime = CTime::GetCurrentTime();
     const CTimeSpan countDownValue = m_shutDownAt - currentTime;
@@ -531,26 +541,26 @@ void CMainDlg::ShowCountDown(void) const throw()
 void CMainDlg::EnableOrDisableControl(
     const int controlId,
     const BOOL ctrIsEnabled
-    ) const throw()
+    ) const noexcept
 {
     GetDlgItem(controlId).EnableWindow(ctrIsEnabled);
 }
 
 void CMainDlg::DisableControl(
     const int controlId
-    ) const throw()
+    ) const noexcept
 {
     EnableOrDisableControl(controlId, FALSE);
 }
 
 void CMainDlg::EnableControl(
     const int controlId
-    ) const throw()
+    ) const noexcept
 {
     EnableOrDisableControl(controlId);
 }
 
-BOOL CMainDlg::IsWindows8(void) throw()
+BOOL CMainDlg::IsWindows8(void) noexcept
 {
     OSVERSIONINFO osvi;
     
