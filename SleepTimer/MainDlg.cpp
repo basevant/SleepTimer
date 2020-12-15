@@ -8,7 +8,6 @@
 
 #include "SettingsRegistryStorage.h"
 #include "ShutdownHelper.h"
-#include "SystemHelper.h"
 
 CMainDlg::CMainDlg():
     m_timerType()
@@ -353,9 +352,6 @@ void CMainDlg::SetPowerOffTypeMode(
             }
         }
         break;
-
-        default:
-            ATLASSERT(FALSE && L"Unsupported power-off action.");
     }
 
     CheckRadioButton(
@@ -599,7 +595,7 @@ BOOL CMainDlg::MoveWindowPositionToSavedPosition(
 ) noexcept
 {
     return SetWindowPos(
-        NULL,
+        nullptr,
         topLeftWindowPointFromRegistry.x,
         topLeftWindowPointFromRegistry.y,
         -1,

@@ -63,7 +63,7 @@ public:
         const BOOL&
         );
 
-    LRESULT OnMove(
+    static LRESULT OnMove(
         const UINT,
         const WPARAM,
         const LPARAM lParam,
