@@ -161,7 +161,7 @@ private:
         const TimerType& timerType
         ) noexcept;
 
-    void SetPowerOffTypeMode(
+    void SetPreferablePowerOffTypeMode(
         const PowerOffType& powerOffType
         ) noexcept;
 

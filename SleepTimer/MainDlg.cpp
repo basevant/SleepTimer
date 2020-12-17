@@ -107,7 +107,7 @@ LRESULT CMainDlg::OnInitDialog(
 
     SendDlgItemMessage(IDC_RAD_OFF_IN, BM_CLICK);
 
-    SetPowerOffTypeMode(PowerOffTypeHibernate);
+    SetPreferablePowerOffTypeMode(PowerOffTypeHibernate);
 
     StartShutdownTimer();
     StartCurrentTimeTimer();
@@ -314,7 +314,7 @@ void CMainDlg::SetTimerTypeMode(
     m_timerType = timerType;
 }
 
-void CMainDlg::SetPowerOffTypeMode(
+void CMainDlg::SetPreferablePowerOffTypeMode(
     const PowerOffType& powerOffType
     ) noexcept
 {
@@ -322,7 +322,7 @@ void CMainDlg::SetPowerOffTypeMode(
     EnableOrDisableControl(IDC_RAD_PWR_SLEEP, m_isSuspendAllowed);
     EnableOrDisableControl(IDC_RAD_PWR_OFF, m_isShutdownAllowed);
 
-    auto activePowerButtonId = 0;
+    auto activePowerButtonId = -1;
 
     switch (powerOffType)
     {
@@ -352,6 +352,22 @@ void CMainDlg::SetPowerOffTypeMode(
             }
         }
         break;
+    }
+
+    if (activePowerButtonId == -1)
+    {
+        if (m_isHibernateAllowed)
+        {
+            activePowerButtonId = IDC_RAD_PWR_HIBERNATE;
+        }
+        else if (m_isSuspendAllowed)
+        {
+            activePowerButtonId = IDC_RAD_PWR_SLEEP;
+        }
+        else if (m_isShutdownAllowed)
+        {
+            activePowerButtonId = IDC_RAD_PWR_OFF;
+        }
     }
 
     CheckRadioButton(
