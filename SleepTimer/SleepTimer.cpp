@@ -45,21 +45,24 @@ int Run(LPCTSTR /*lpctstrCmdLine*/ = nullptr, const int nCmdShow = SW_SHOWDEFAUL
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lptstrCmdLine, const int nShowCmd)
 {
-    auto hRes = ::CoInitialize(nullptr);
-    ATLASSERT(SUCCEEDED(hRes));
-
     // this resolves ATL window thunking problem when Microsoft Layer for Unicode (MSLU) is used
     ::DefWindowProc(nullptr, 0, 0, 0L);
 
-    AtlInitCommonControls(ICC_BAR_CLASSES);	// add flags to support other controls
+    // add flags to support other controls
+    AtlInitCommonControls(ICC_BAR_CLASSES);
 
-    hRes = _Module.Init(nullptr, hInstance);
+    auto const hRes = _Module.Init(nullptr, hInstance);
     ATLASSERT(SUCCEEDED(hRes));
+    if (FAILED(hRes))
+    {
+        _Module.Term();
+
+        return 0;
+    }
 
     auto const nRet = Run(lptstrCmdLine, nShowCmd);
 
     _Module.Term();
-    ::CoUninitialize();
 
     return nRet;
 }
