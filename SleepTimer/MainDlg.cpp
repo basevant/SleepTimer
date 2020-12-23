@@ -224,7 +224,7 @@ LRESULT CMainDlg::OnBtnTimerClick(
     const BOOL&
     )
 {
-    m_shutDownByZeros = false;
+    m_shutDownNow = false;
 
     if (m_isTicking)
     {
@@ -237,48 +237,74 @@ LRESULT CMainDlg::OnBtnTimerClick(
             const unsigned short powerOffInHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
             const unsigned short powerOffInMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
 
-            m_shutDownByZeros = (
+            m_shutDownNow = (
                 (0 == powerOffInHours)
                 && (0 == powerOffInMinutes)
                 );
 
-            m_shutDownInSecondsCountdown = powerOffInHours * 3600 + powerOffInMinutes * 60;
-            m_shutDownAt = CTime::GetCurrentTime() + CTimeSpan(0, powerOffInHours, powerOffInMinutes, 0);
+            if (!m_shutDownNow)
+            {
+                m_shutDownInSecondsCountdown = powerOffInHours * 3600 + powerOffInMinutes * 60;
+                m_shutDownAt = CTime::GetCurrentTime() + CTimeSpan(0, powerOffInHours, powerOffInMinutes, 0);
+            }
         }
         else
         {
             m_shutDownAtHours = GetComboBoxSelectedItemData(IDC_CMB_AT_HRS);
             m_shutDownAtMinutes = GetComboBoxSelectedItemData(IDC_CMB_AT_MINS);
 
-            m_shutDownByZeros = (
-                (0 == m_shutDownAtHours)
-                && (0 == m_shutDownAtMinutes)
+            const auto currentTime = CTime::GetCurrentTime();
+            const auto currentHour = currentTime.GetHour();
+            const auto currentMinute = currentTime.GetMinute();
+
+            m_shutDownNow = (
+                (m_shutDownAtHours == currentHour)
+                && (m_shutDownAtMinutes == currentMinute)
                 );
 
-            const auto currentTime = CTime::GetCurrentTime();
-
-            if (m_shutDownAtHours < currentTime.GetHour())
+            if (!m_shutDownNow)
             {
-                const auto midNight = CTime(currentTime.GetYear(), currentTime.GetMonth(), currentTime.GetDay(), 23, 59, 59);
-                const auto tomorrow = midNight + CTimeSpan(0, 0, 0, 1);
-                m_shutDownAt = tomorrow + CTimeSpan(0, m_shutDownAtHours, m_shutDownAtMinutes, 0);
-            }
-            else
-            {
-                m_shutDownAt = CTime(
-                    currentTime.GetYear(),
-                    currentTime.GetMonth(),
-                    currentTime.GetDay(),
-                    m_shutDownAtHours,
-                    m_shutDownAtMinutes,
-                    0
+                const auto shutDownIsInPast = (
+                    (m_shutDownAtHours < currentHour)
+                    || (m_shutDownAtHours == currentHour
+                        && m_shutDownAtMinutes < currentMinute
+                        )
                     );
+
+                if (shutDownIsInPast)
+                {
+                    //  now: 11:06
+                    //  power-off at: 11:00 (tomorrow)
+
+                    const auto midNight = CTime(
+                        currentTime.GetYear(),
+                        currentTime.GetMonth(),
+                        currentTime.GetDay(),
+                        23,
+                        59,
+                        59
+                    );
+
+                    const auto tomorrow = midNight + CTimeSpan(0, 0, 0, 1);
+                    m_shutDownAt = tomorrow + CTimeSpan(0, m_shutDownAtHours, m_shutDownAtMinutes, 0);
+                }
+                else
+                {
+                    m_shutDownAt = CTime(
+                        currentTime.GetYear(),
+                        currentTime.GetMonth(),
+                        currentTime.GetDay(),
+                        m_shutDownAtHours,
+                        m_shutDownAtMinutes,
+                        0
+                    );
+                }
             }
         }
 
-        if (m_shutDownByZeros)
+        if (m_shutDownNow)
         {
-            ProcessShutdownByZerosCase();
+            ProcessShutdownNowCase();
 
             return 0;
         }
@@ -760,7 +786,7 @@ void CMainDlg::StopShutdownTimer() noexcept
     KillTimer(SHUTDOWN_TIMER_ID);
 }
 
-void CMainDlg::ProcessShutdownByZerosCase() noexcept
+void CMainDlg::ProcessShutdownNowCase() noexcept
 {
     StopShutdownTimer();
 
@@ -783,7 +809,7 @@ void CMainDlg::ProcessShutdownByZerosCase() noexcept
         return;
     }
 
-    m_shutDownByZeros = false;
+    m_shutDownNow = false;
 
     StartShutdownTimer();
 }

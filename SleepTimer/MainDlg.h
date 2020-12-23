@@ -152,7 +152,7 @@ private:
 
     int m_shutDownInSecondsCountdown = 0;
 
-    bool m_shutDownByZeros = false;
+    bool m_shutDownNow = false;
     TimerType m_timerType;
 
     bool m_isCautionMessageAlreadyShown = false;
@@ -229,5 +229,5 @@ private:
     void StartCurrentTimeTimer() noexcept;
     void StopCurrentTimeTimer() noexcept;
 
-    void ProcessShutdownByZerosCase() noexcept;
+    void ProcessShutdownNowCase() noexcept;
 };
