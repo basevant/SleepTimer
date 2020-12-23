@@ -145,14 +145,8 @@ private:
 
     bool m_isTicking = false;
 
-    CTime m_shutDownAt;
+    long long m_shutDownCountdownInSeconds = 0;
 
-    byte m_shutDownAtHours = 0;
-    byte m_shutDownAtMinutes = 0;
-
-    int m_shutDownInSecondsCountdown = 0;
-
-    bool m_shutDownNow = false;
     TimerType m_timerType;
 
     bool m_isCautionMessageAlreadyShown = false;

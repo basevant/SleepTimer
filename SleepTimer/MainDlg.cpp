@@ -224,52 +224,53 @@ LRESULT CMainDlg::OnBtnTimerClick(
     const BOOL&
     )
 {
-    m_shutDownNow = false;
-
     if (m_isTicking)
     {
         EnableUiAndStopCountdown();
     }
     else
     {
-        if (TRUE == RadioIsChecked(IDC_RAD_OFF_IN))
+        bool shutDownNow;
+
+        if (m_timerType == TimerTypeIn)
         {
             const unsigned short powerOffInHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
             const unsigned short powerOffInMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
 
-            m_shutDownNow = (
+            shutDownNow = (
                 (0 == powerOffInHours)
                 && (0 == powerOffInMinutes)
                 );
 
-            if (!m_shutDownNow)
+            if (!shutDownNow)
             {
-                m_shutDownInSecondsCountdown = powerOffInHours * 3600 + powerOffInMinutes * 60;
-                m_shutDownAt = CTime::GetCurrentTime() + CTimeSpan(0, powerOffInHours, powerOffInMinutes, 0);
+                m_shutDownCountdownInSeconds = powerOffInHours * 3600 + powerOffInMinutes * 60;
             }
         }
         else
         {
-            m_shutDownAtHours = GetComboBoxSelectedItemData(IDC_CMB_AT_HRS);
-            m_shutDownAtMinutes = GetComboBoxSelectedItemData(IDC_CMB_AT_MINS);
+            auto const shutDownAtHours = GetComboBoxSelectedItemData(IDC_CMB_AT_HRS);
+            auto const shutDownAtMinutes = GetComboBoxSelectedItemData(IDC_CMB_AT_MINS);
 
             const auto currentTime = CTime::GetCurrentTime();
             const auto currentHour = currentTime.GetHour();
             const auto currentMinute = currentTime.GetMinute();
 
-            m_shutDownNow = (
-                (m_shutDownAtHours == currentHour)
-                && (m_shutDownAtMinutes == currentMinute)
+            shutDownNow = (
+                (shutDownAtHours == currentHour)
+                && (shutDownAtMinutes == currentMinute)
                 );
 
-            if (!m_shutDownNow)
+            if (!shutDownNow)
             {
                 const auto shutDownIsInPast = (
-                    (m_shutDownAtHours < currentHour)
-                    || (m_shutDownAtHours == currentHour
-                        && m_shutDownAtMinutes < currentMinute
+                    (shutDownAtHours < currentHour)
+                    || (shutDownAtHours == currentHour
+                        && shutDownAtMinutes < currentMinute
                         )
                     );
+
+                CTime shutDownAt;
 
                 if (shutDownIsInPast)
                 {
@@ -286,23 +287,25 @@ LRESULT CMainDlg::OnBtnTimerClick(
                     );
 
                     const auto tomorrow = midNight + CTimeSpan(0, 0, 0, 1);
-                    m_shutDownAt = tomorrow + CTimeSpan(0, m_shutDownAtHours, m_shutDownAtMinutes, 0);
+                    shutDownAt = tomorrow + CTimeSpan(0, shutDownAtHours, shutDownAtMinutes, 0);
                 }
                 else
                 {
-                    m_shutDownAt = CTime(
+                    shutDownAt = CTime(
                         currentTime.GetYear(),
                         currentTime.GetMonth(),
                         currentTime.GetDay(),
-                        m_shutDownAtHours,
-                        m_shutDownAtMinutes,
+                        shutDownAtHours,
+                        shutDownAtMinutes,
                         0
                     );
                 }
+
+                m_shutDownCountdownInSeconds = (shutDownAt - currentTime).GetTotalSeconds();
             }
         }
 
-        if (m_shutDownNow)
+        if (shutDownNow)
         {
             ProcessShutdownNowCase();
 
@@ -467,10 +470,7 @@ void CMainDlg::ProcessCountDown() noexcept
         return;
     }
 
-    if (m_timerType == TimerTypeIn)
-    {
-        m_shutDownInSecondsCountdown--;
-    }
+    m_shutDownCountdownInSeconds--;
 
     ShowCountDown();
 }
@@ -484,29 +484,8 @@ void CMainDlg::ProcessShutdownOption()
 
     const auto currentPowerOffType = static_cast<PowerOffType>(GetPowerOffType());
 
-    bool currentTimeIsCautionTime;
-    bool currentTimeIsShutdownTime;
-
-    const auto currentTime = CTime::GetCurrentTime();
-
-    if (m_timerType == TimerTypeAt)
-    {
-        const auto currentTimePlusOneMinute = currentTime + CTimeSpan(0, 0, 1, 0);
-
-        currentTimeIsCautionTime = (
-            currentTimePlusOneMinute.GetHour() == m_shutDownAtHours
-            && currentTimePlusOneMinute.GetMinute() == m_shutDownAtMinutes
-            );
-
-        currentTimeIsShutdownTime = (
-            m_shutDownAt <= CTime::GetCurrentTime()
-            );
-    }
-    else
-    {
-        currentTimeIsCautionTime = m_shutDownInSecondsCountdown <= 60;
-        currentTimeIsShutdownTime = m_shutDownInSecondsCountdown <= 0;
-    }
+    auto const currentTimeIsCautionTime = m_shutDownCountdownInSeconds <= 60;
+    auto const currentTimeIsShutdownTime = m_shutDownCountdownInSeconds <= 0;
 
     if (currentTimeIsCautionTime && !m_isCautionMessageAlreadyShown)
     {
@@ -591,22 +570,28 @@ void CMainDlg::EnableOrDisableShutdownInControls(
 
 void CMainDlg::ShowCountDown() const noexcept
 {
-    const auto currentTime = CTime::GetCurrentTime();
-    const auto countDownValue = m_shutDownAt - currentTime;
-
     auto lblCountDown = GetDlgItem(IDC_LBL_OFF_ELPSD);
+    auto lblPowerOffAt = GetDlgItem(IDC_LBL_OFF_AT);
 
-    if (countDownValue.GetTotalSeconds() > 0)
+    if (m_shutDownCountdownInSeconds > 0)
     {
+        const CTimeSpan countDownValue(m_shutDownCountdownInSeconds);
+
         lblCountDown.SetWindowTextW(
             countDownValue.Format(TIMER_MASK)
             );
+
+        const auto currentTime = CTime::GetCurrentTime();
+
+        lblPowerOffAt.SetWindowTextW(
+            (currentTime + countDownValue).Format(TIMER_MASK)
+        );
     }
     else
     {
-        lblCountDown.SetWindowTextW(
-            L"00:00:00"
-            );
+        lblCountDown.SetWindowTextW(L"00:00:00");
+
+        lblPowerOffAt.SetWindowTextW(L"?");
     }
 }
 
@@ -654,26 +639,26 @@ byte CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const
 
 void CMainDlg::PowerOffAndExit(const PowerOffType powerOffType)
 {
-    switch (powerOffType)
-    {
-        case PowerOffTypeHibernate:
-        {
-            CShutdownHelper::Hibernate();
-        }
-        break;
+    //switch (powerOffType)
+    //{
+    //    case PowerOffTypeHibernate:
+    //    {
+    //        CShutdownHelper::Hibernate();
+    //    }
+    //    break;
 
-        case PowerOffTypeShutdown:
-        {
-            CShutdownHelper::Shutdown();
-        }
-        break;
+    //    case PowerOffTypeShutdown:
+    //    {
+    //        CShutdownHelper::Shutdown();
+    //    }
+    //    break;
 
-        case PowerOffTypeSuspend:
-        {
-            CShutdownHelper::Sleep();
-        }
-        break;
-    }
+    //    case PowerOffTypeSuspend:
+    //    {
+    //        CShutdownHelper::Sleep();
+    //    }
+    //    break;
+    //}
 
     CloseDialog(0);
 }
@@ -765,10 +750,6 @@ void CMainDlg::DisableUiAndStartCountdown() const
     DisableControl(IDC_RAD_PWR_OFF);
     DisableControl(IDC_RAD_PWR_SLEEP);
 
-    GetDlgItem(IDC_LBL_OFF_AT).SetWindowTextW(
-        m_shutDownAt.Format(TIMER_MASK)
-    );
-
     ShowCountDown();
 
     GetDlgItem(IDC_BTN_START).SetWindowTextW(
@@ -808,8 +789,6 @@ void CMainDlg::ProcessShutdownNowCase() noexcept
 
         return;
     }
-
-    m_shutDownNow = false;
 
     StartShutdownTimer();
 }
