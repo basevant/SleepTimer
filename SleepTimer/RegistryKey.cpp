@@ -8,14 +8,9 @@ CRegistryKey::~CRegistryKey()
 
 LSTATUS CRegistryKey::OpenCurrentUserKeyForReading(const LPCWSTR lpSubKey)
 {
-    auto lStatus = CloseKey();
-    ATLASSERT(lStatus == ERROR_SUCCESS);
-    if (lStatus != ERROR_SUCCESS)
-    {
-        return lStatus;
-    }
+    CloseKey();
 
-    lStatus = RegOpenKeyExW(
+    auto const lStatus = RegOpenKeyExW(
         HKEY_CURRENT_USER,
         lpSubKey,
         0,
@@ -31,14 +26,9 @@ LSTATUS CRegistryKey::OpenCurrentUserKeyForWriting(
     const BOOL createIfMissing
 )
 {
-    auto lStatus = CloseKey();
-    ATLASSERT(lStatus == ERROR_SUCCESS);
-    if (lStatus != ERROR_SUCCESS)
-    {
-        return lStatus;
-    }
+    CloseKey();
 
-    lStatus = RegOpenKeyExW(
+    auto lStatus = RegOpenKeyExW(
         HKEY_CURRENT_USER,
         lpSubKey,
         0,
