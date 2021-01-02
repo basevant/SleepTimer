@@ -53,7 +53,7 @@ BEGIN
     LTEXT           "00:00:00",IDC_LBL_TIME,209,82,30,8
     LTEXT           "?",IDC_LBL_OFF_AT,209,99,30,8
     LTEXT           "?",IDC_LBL_OFF_ELPSD,209,116,30,8
-    RTEXT           "Copyright © basevant@live.ru, 2020",IDC_LBL_EMAIL,126,204,119,8
+    RTEXT           "Copyright © basevant@live.ru, 2021",IDC_LBL_EMAIL,126,204,119,8
 END
 
 
@@ -91,8 +91,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,5
- PRODUCTVERSION 1,0,0,5
+ FILEVERSION 1,0,0,6
+ PRODUCTVERSION 1,0,0,6
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -109,12 +109,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "basevant@live.ru"
             VALUE "FileDescription", "SleepTimer"
-            VALUE "FileVersion", "1.0.0.5"
+            VALUE "FileVersion", "1.0.0.6"
             VALUE "InternalName", "SleepTimer"
-            VALUE "LegalCopyright", "Copyright 2020 © Anton Basevich"
+            VALUE "LegalCopyright", "Copyright 2021 © Anton Basevich"
             VALUE "OriginalFilename", "SleepTimer.exe"
             VALUE "ProductName", "Sleep Timer"
-            VALUE "ProductVersion", "1.0.0.5"
+            VALUE "ProductVersion", "1.0.0.6"
         END
     END
     BLOCK "VarFileInfo"
