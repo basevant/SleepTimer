@@ -118,6 +118,7 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Settings.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="RegistryKey.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
@@ -131,6 +132,8 @@
     <ClCompile Include="SystemHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PowerOffType.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="RegistryKey.h" />
     <ClInclude Include="resource.h" />
@@ -139,6 +142,7 @@
     <ClInclude Include="ShutdownHelper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SystemHelper.h" />
+    <ClInclude Include="TimerType.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SleepTimer.rc" />

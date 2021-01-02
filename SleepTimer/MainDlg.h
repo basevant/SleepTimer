@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include "PowerOffType.h"
 #include "ResourceManager.h"
+#include "TimerType.h"
 
 class CMainDlg :
     public CDialogImpl<CMainDlg>,
@@ -24,7 +26,6 @@ public:
         MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
         MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
         MESSAGE_HANDLER(WM_TIMER, OnTimer)
-        MESSAGE_HANDLER(WM_MOVE, OnMove)
         COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
         COMMAND_ID_HANDLER(IDC_RAD_OFF_AT, OnTimerModeAtClick)
         COMMAND_ID_HANDLER(IDC_RAD_OFF_IN, OnTimerModeInClick)
@@ -62,13 +63,6 @@ public:
         const LPARAM,
         const BOOL&
         );
-
-    static LRESULT OnMove(
-        const UINT,
-        const WPARAM,
-        const LPARAM lParam,
-        const BOOL&
-    ) noexcept;
 
     /*									*/
     /*									*/
@@ -118,8 +112,6 @@ public:
         const int nVal
         ) noexcept;
 
-    CMainDlg();
-
 private:
     BOOL m_isHibernateAllowed = false;
     BOOL m_isSuspendAllowed = false;
@@ -130,24 +122,9 @@ private:
 
     const CString TIMER_MASK = CResourceManager::LoadStringFromResource(IDS_TIMER_MASK);
 
-    enum TimerType
-    {
-        TimerTypeAt = 0,
-        TimerTypeIn = 1
-    };
-
-    enum PowerOffType
-    {
-        PowerOffTypeShutdown = 0,
-        PowerOffTypeSuspend = 1,
-        PowerOffTypeHibernate = 2
-    };
-
     bool m_isTicking = false;
 
     long long m_shutDownCountdownInSeconds = 0;
-
-    TimerType m_timerType;
 
     bool m_isCautionMessageAlreadyShown = false;
 
@@ -165,6 +142,11 @@ private:
         const unsigned short selectedItemIdx
         ) const;
 
+    void SetComboActiveItem(
+        const int comboId,
+        const unsigned short itemValue
+    ) const;
+
     void FillHoursCombo(
         const int comboId,
         const unsigned short selectedIndex
@@ -179,7 +161,7 @@ private:
     void ProcessShutdownOption();
 
     bool RadioIsChecked(
-        const UINT_PTR radioButtonId
+        const int radioButtonId
         ) const noexcept;
 
     void ShowCountDown()const noexcept;
@@ -206,16 +188,16 @@ private:
         ) const noexcept;
 
     BOOL MoveWindowPositionToSavedPosition(
-        POINTS topLeftWindowPointFromRegistry
+        const POINTS topLeftWindowPosition
     ) noexcept;
 
-    byte GetComboBoxSelectedItemData(const int comboBoxId) const;
+    unsigned short GetComboBoxSelectedItemData(const int comboBoxId) const;
     void PowerOffAndExit(const PowerOffType powerOffType);
-    int GetPowerOffType() const;
+    PowerOffType GetPowerOffType() const;
     static CString GetPowerOffTypeDescription(const PowerOffType powerOffType);
 
-    void EnableUiAndStopCountdown() const;
-    void DisableUiAndStartCountdown() const;
+    void EnableUiAndStopCountdown();
+    void DisableUiAndStartCountdown();
 
     void StartShutdownTimer() noexcept;
     void StopShutdownTimer() noexcept;
@@ -224,4 +206,9 @@ private:
     void StopCurrentTimeTimer() noexcept;
 
     void ProcessShutdownNowCase() noexcept;
+
+    void LoadAndApplyUiSettings() noexcept;
+    void SaveUiSettings() const noexcept;
+
+    TimerType GetTimerType() const noexcept;
 };

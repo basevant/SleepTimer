@@ -9,11 +9,6 @@
 #include "SettingsRegistryStorage.h"
 #include "ShutdownHelper.h"
 
-CMainDlg::CMainDlg():
-    m_timerType()
-{
-}
-
 BOOL CMainDlg::PreTranslateMessage(MSG* pMsg)
 {
     return CWindow::IsDialogMessage(pMsg);
@@ -55,20 +50,6 @@ LRESULT CMainDlg::OnInitDialog(
         return TRUE;
     }
 
-    POINTS topLeftWindowPointFromRegistry;
-    ZeroMemory(&topLeftWindowPointFromRegistry, sizeof(POINTS));
-
-    auto const windowHasBeenMoved = (
-        (TRUE == CSettingsRegistryStorage().ReadWindowPosition(topLeftWindowPointFromRegistry))
-        && (TRUE == MoveWindowPositionToSavedPosition(topLeftWindowPointFromRegistry))
-        );
-
-    if (!windowHasBeenMoved)
-    {
-        // center the dialog on the screen
-        CenterWindow();
-    }
-
     // set icons
     auto *const hIcon = AtlLoadIconImage(
         IDR_MAINFRAME,
@@ -105,11 +86,8 @@ LRESULT CMainDlg::OnInitDialog(
     FillHoursCombo(IDC_CMB_IN_HRS, 1);
     FillMinutesCombo(IDC_CMB_IN_MINS);
 
-    SendDlgItemMessage(IDC_RAD_OFF_IN, BM_CLICK);
+    LoadAndApplyUiSettings();
 
-    SetPreferablePowerOffTypeMode(PowerOffTypeHibernate);
-
-    StartShutdownTimer();
     StartCurrentTimeTimer();
 
     ShowCurrentTime();
@@ -205,18 +183,6 @@ LRESULT CMainDlg::OnTimer(
     return 0;
 }
 
-LRESULT CMainDlg::OnMove(
-    const UINT,
-    const WPARAM,
-    const LPARAM lParam,
-    const BOOL&
-) noexcept
-{
-    CSettingsRegistryStorage().WriteWindowPosition(MAKEPOINTS(lParam));
-
-    return 0;
-}
-
 LRESULT CMainDlg::OnBtnTimerClick(
     const WORD,
     const WORD,
@@ -224,6 +190,8 @@ LRESULT CMainDlg::OnBtnTimerClick(
     const BOOL&
     )
 {
+    SaveUiSettings();
+
     if (m_isTicking)
     {
         EnableUiAndStopCountdown();
@@ -232,10 +200,10 @@ LRESULT CMainDlg::OnBtnTimerClick(
     {
         bool shutDownNow;
 
-        if (m_timerType == TimerTypeIn)
+        if (GetTimerType() == TimerTypeIn)
         {
-            const unsigned short powerOffInHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
-            const unsigned short powerOffInMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
+            auto const powerOffInHours = GetComboBoxSelectedItemData(IDC_CMB_IN_HRS);
+            auto const powerOffInMinutes = GetComboBoxSelectedItemData(IDC_CMB_IN_MINS);
 
             shutDownNow = (
                 (0 == powerOffInHours)
@@ -244,7 +212,9 @@ LRESULT CMainDlg::OnBtnTimerClick(
 
             if (!shutDownNow)
             {
-                m_shutDownCountdownInSeconds = powerOffInHours * 3600 + powerOffInMinutes * 60;
+                m_shutDownCountdownInSeconds = static_cast<long long>(
+                    powerOffInHours * 3600 + powerOffInMinutes * 60
+                    );
             }
         }
         else
@@ -340,7 +310,11 @@ void CMainDlg::SetTimerTypeMode(
 
     EnableOrDisableShutdownInControls(shouldSetTimerTypeIn);
 
-    m_timerType = timerType;
+    CheckRadioButton(
+        IDC_RAD_OFF_AT,
+        IDC_RAD_OFF_IN,
+        shouldSetTimerTypeIn ? IDC_RAD_OFF_IN : IDC_RAD_OFF_AT
+    );
 }
 
 void CMainDlg::SetPreferablePowerOffTypeMode(
@@ -429,6 +403,28 @@ void CMainDlg::FillCombo(
     }
 }
 
+void CMainDlg::SetComboActiveItem(
+    const int comboId,
+    const unsigned short itemValue
+) const
+{
+    auto someCombo = static_cast<CComboBox>(GetDlgItem(comboId));
+    auto const someComboItemsCount = someCombo.GetCount();
+
+    for (auto i = 0; i < someComboItemsCount; i++)
+    {
+        const auto itemData = static_cast<unsigned short>(
+            someCombo.GetItemData(i)
+            );
+
+        if (itemData == itemValue)
+        {
+            someCombo.SetCurSel(i);
+            return;
+        }
+    }
+}
+
 void CMainDlg::FillHoursCombo(
     const int comboId,
     const unsigned short selectedIndex
@@ -448,12 +444,14 @@ void CMainDlg::FillMinutesCombo(const int comboId) const
 {
     std::vector<unsigned short> comboMinutesValues;
 
-    for (unsigned short i = 0; i < 12; i++)
+    for (auto i = 0; i < 12; i++)
     {
-        comboMinutesValues.push_back(i * 5);
+        comboMinutesValues.push_back(
+            static_cast<unsigned short>(i * 5)
+            );
     }
 
-    FillCombo(comboId, comboMinutesValues, 0);
+    FillCombo(comboId, comboMinutesValues, static_cast<unsigned short>(0));
 }
 
 void CMainDlg::ShowCurrentTime() const noexcept
@@ -482,7 +480,7 @@ void CMainDlg::ProcessShutdownOption()
         return;
     }
 
-    const auto currentPowerOffType = static_cast<PowerOffType>(GetPowerOffType());
+    const auto currentPowerOffType = GetPowerOffType();
 
     auto const currentTimeIsCautionTime = m_shutDownCountdownInSeconds <= 60;
     auto const currentTimeIsShutdownTime = m_shutDownCountdownInSeconds <= 0;
@@ -540,11 +538,11 @@ void CMainDlg::ProcessShutdownOption()
 }
 
 bool CMainDlg::RadioIsChecked(
-    const UINT_PTR radioButtonId
+    const int radioButtonId
     ) const noexcept
 {
     return (
-        GetDlgItem(radioButtonId).SendMessageW(BM_GETCHECK, 0, 0L) != 0
+        GetDlgItem(radioButtonId).SendMessageW(BM_GETCHECK) != 0
         );
 }
 
@@ -618,52 +616,52 @@ void CMainDlg::EnableControl(
 }
 
 BOOL CMainDlg::MoveWindowPositionToSavedPosition(
-    POINTS topLeftWindowPointFromRegistry
+    const POINTS topLeftWindowPosition
 ) noexcept
 {
     return SetWindowPos(
         nullptr,
-        topLeftWindowPointFromRegistry.x,
-        topLeftWindowPointFromRegistry.y,
+        topLeftWindowPosition.x,
+        topLeftWindowPosition.y,
         -1,
         -1,
         SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE
     );
 }
 
-byte CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const
+unsigned short CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const
 {
     const auto someComboBox = static_cast<CComboBox>(GetDlgItem(comboBoxId));
-    return static_cast<byte>(someComboBox.GetItemData(someComboBox.GetCurSel()));
+    return static_cast<unsigned short>(someComboBox.GetItemData(someComboBox.GetCurSel()));
 }
 
 void CMainDlg::PowerOffAndExit(const PowerOffType powerOffType)
 {
-    //switch (powerOffType)
-    //{
-    //    case PowerOffTypeHibernate:
-    //    {
-    //        CShutdownHelper::Hibernate();
-    //    }
-    //    break;
+    switch (powerOffType)
+    {
+        case PowerOffTypeHibernate:
+        {
+            CShutdownHelper::Hibernate();
+        }
+        break;
 
-    //    case PowerOffTypeShutdown:
-    //    {
-    //        CShutdownHelper::Shutdown();
-    //    }
-    //    break;
+        case PowerOffTypeShutdown:
+        {
+            CShutdownHelper::Shutdown();
+        }
+        break;
 
-    //    case PowerOffTypeSuspend:
-    //    {
-    //        CShutdownHelper::Sleep();
-    //    }
-    //    break;
-    //}
+        case PowerOffTypeSuspend:
+        {
+            CShutdownHelper::Sleep();
+        }
+        break;
+    }
 
     CloseDialog(0);
 }
 
-int CMainDlg::GetPowerOffType() const
+PowerOffType CMainDlg::GetPowerOffType() const
 {
     PowerOffType retVal;
 
@@ -685,8 +683,6 @@ int CMainDlg::GetPowerOffType() const
 
 CString CMainDlg::GetPowerOffTypeDescription(const PowerOffType powerOffType)
 {
-    //	http://msdn.microsoft.com/en-us/library/windows/desktop/ms645505%28v=vs.85%29.aspx
-    //
     CString retVal;
 
     switch (powerOffType)
@@ -713,8 +709,10 @@ CString CMainDlg::GetPowerOffTypeDescription(const PowerOffType powerOffType)
     return retVal;
 }
 
-void CMainDlg::EnableUiAndStopCountdown() const
+void CMainDlg::EnableUiAndStopCountdown()
 {
+    StopShutdownTimer();
+
     EnableOrDisableShutdownAtControls(TRUE);
     EnableControl(IDC_RAD_OFF_AT);
 
@@ -738,8 +736,10 @@ void CMainDlg::EnableUiAndStopCountdown() const
     );
 }
 
-void CMainDlg::DisableUiAndStartCountdown() const
+void CMainDlg::DisableUiAndStartCountdown()
 {
+    StartShutdownTimer();
+
     EnableOrDisableShutdownAtControls(FALSE);
     DisableControl(IDC_RAD_OFF_AT);
 
@@ -783,9 +783,7 @@ void CMainDlg::ProcessShutdownNowCase() noexcept
 
     if (IDYES == powerOffNowMessageBoxResult)
     {
-        PowerOffAndExit(
-            static_cast<PowerOffType>(GetPowerOffType())
-        );
+        PowerOffAndExit(GetPowerOffType());
 
         return;
     }
@@ -801,4 +799,111 @@ void CMainDlg::StartCurrentTimeTimer() noexcept
 void CMainDlg::StopCurrentTimeTimer() noexcept
 {
     KillTimer(CURRENT_TIME_TIMER_ID);
+}
+
+void CMainDlg::LoadAndApplyUiSettings() noexcept
+{
+    CSettings uiSettings;
+    CSettingsRegistryStorage().ReadUiSettings(uiSettings);
+
+    //  Window position
+    //
+    auto const topLeftPosition = uiSettings.GetTopLeftWindowPosition();
+    auto const topLeftPositionIsValid = (
+        (topLeftPosition.x > 0)
+        && (topLeftPosition.y > 0)
+        );
+
+    auto const windowHasBeenMoved = (
+        topLeftPositionIsValid
+        && (TRUE == MoveWindowPositionToSavedPosition(topLeftPosition))
+        );
+
+    if (!windowHasBeenMoved)
+    {
+        CenterWindow();
+    }
+
+    //  UI controls
+    //
+    SetTimerTypeMode(uiSettings.GetTimerType());
+
+    SetComboActiveItem(
+        IDC_CMB_IN_HRS,
+        uiSettings.GetTimerTypeInHours()
+    );
+
+    SetComboActiveItem(
+        IDC_CMB_IN_MINS,
+        uiSettings.GetTimerTypeInMinutes()
+    );
+
+    SetComboActiveItem(
+        IDC_CMB_AT_HRS,
+        uiSettings.GetTimerTypeAtHours()
+    );
+
+    SetComboActiveItem(
+        IDC_CMB_AT_MINS,
+        uiSettings.GetTimerTypeAtMinutes()
+    );
+
+    SetPreferablePowerOffTypeMode(uiSettings.GetPowerOffType());
+}
+
+void CMainDlg::SaveUiSettings() const noexcept
+{
+    CSettings uiSettings;
+
+    //  Window position
+    //
+    RECT windowRect = { 0 };
+
+    if (GetWindowRect(&windowRect) != FALSE)
+    {
+        uiSettings.SetTopLeftWindowPositionCoordinates(
+            POINTS
+            {
+                static_cast<SHORT>(windowRect.left),
+                static_cast<SHORT>(windowRect.top)
+            }
+        );
+    }
+
+    //  UI controls
+    //
+    uiSettings.SetTimerType(
+        GetTimerType()
+    );
+
+    uiSettings.SetTimerTypeInHours(
+        GetComboBoxSelectedItemData(IDC_CMB_IN_HRS)
+    );
+
+    uiSettings.SetTimerTypeInMinutes(
+        GetComboBoxSelectedItemData(IDC_CMB_IN_MINS)
+    );
+
+    uiSettings.SetTimerTypeAtHours(
+        GetComboBoxSelectedItemData(IDC_CMB_AT_HRS)
+    );
+
+    uiSettings.SetTimerTypeAtMinutes(
+        GetComboBoxSelectedItemData(IDC_CMB_AT_MINS)
+    );
+
+    uiSettings.SetPowerOffType(
+        GetPowerOffType()
+    );
+
+    CSettingsRegistryStorage().WriteUiSettings(uiSettings);
+}
+
+TimerType CMainDlg::GetTimerType() const noexcept
+{
+    return (
+        RadioIsChecked(IDC_RAD_OFF_IN)
+        ? TimerTypeIn
+        : TimerTypeAt
+        );
 }
