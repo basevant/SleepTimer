@@ -301,35 +301,33 @@ BOOL CSettingsRegistryStorage::TryReadPowerOffType(
 
 BOOL CSettingsRegistryStorage::TryWriteTopLeftPosition(const POINTS topLeftPoint) const noexcept
 {
-    const auto windowCaptionAreaHeight = static_cast<DWORD>(GetSystemMetrics(SM_CYCAPTION));
-    const auto verticalBorderWidth = static_cast<DWORD>(GetSystemMetrics(SM_CYFIXEDFRAME));
-    const auto horizontalBorderHeight = static_cast<DWORD>(GetSystemMetrics(SM_CXFIXEDFRAME));
+    const auto verticalBorderWidth = GetSystemMetrics(SM_CYFIXEDFRAME);
+    const auto posX = topLeftPoint.x - verticalBorderWidth;
 
-    const auto dwPosX = (
-        static_cast<DWORD>(topLeftPoint.x)
-        - verticalBorderWidth
-        );
+    auto result = FALSE;
 
-    const auto dwPosY = (
-        static_cast<DWORD>(topLeftPoint.y)
-        - windowCaptionAreaHeight
-        - horizontalBorderHeight
-        );
-
-    auto const result = WriteDwordValue(
-        SLEEP_TIMER_REG_PARAM_WND_X_POS,
-        dwPosX
-    );
-
-    if (result != TRUE)
+    if (posX >= 0)
     {
-        return result;
+        result = WriteDwordValue(
+            SLEEP_TIMER_REG_PARAM_WND_X_POS,
+            static_cast<DWORD>(posX)
+        );
+
+        if (result != TRUE)
+        {
+            return result;
+        }
     }
 
-    return WriteDwordValue(
-        SLEEP_TIMER_REG_PARAM_WND_Y_POS,
-        dwPosY
-    );
+    if (topLeftPoint.y >= 0)
+    {
+        result = WriteDwordValue(
+            SLEEP_TIMER_REG_PARAM_WND_Y_POS,
+            static_cast<DWORD>(topLeftPoint.y)
+        );
+    }
+
+    return result;
 }
 
 BOOL CSettingsRegistryStorage::TryWriteTimerType(const TimerType timerType) const noexcept
