@@ -451,7 +451,7 @@ void CMainDlg::FillMinutesCombo(const int comboId) const
             );
     }
 
-    FillCombo(comboId, comboMinutesValues, static_cast<unsigned short>(0));
+    FillCombo(comboId, comboMinutesValues, 0);
 }
 
 void CMainDlg::ShowCurrentTime() const noexcept
