@@ -533,7 +533,7 @@ void CMainDlg::ProcessShutdownOption()
 
     if (currentTimeIsShutdownTime)
     {
-        PowerOffAndExit(currentPowerOffType);
+        StopPowerOffTimerAndHandlePowerOffType(currentPowerOffType);
     }
 }
 
@@ -635,8 +635,10 @@ unsigned short CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const
     return static_cast<unsigned short>(someComboBox.GetItemData(someComboBox.GetCurSel()));
 }
 
-void CMainDlg::PowerOffAndExit(const PowerOffType powerOffType)
+void CMainDlg::StopPowerOffTimerAndHandlePowerOffType(const PowerOffType powerOffType)
 {
+    m_isTicking = false;
+
     switch (powerOffType)
     {
         case PowerOffTypeHibernate:
@@ -657,8 +659,6 @@ void CMainDlg::PowerOffAndExit(const PowerOffType powerOffType)
         }
         break;
     }
-
-    CloseDialog(0);
 }
 
 PowerOffType CMainDlg::GetPowerOffType() const
@@ -783,7 +783,7 @@ void CMainDlg::ProcessShutdownNowCase() noexcept
 
     if (IDYES == powerOffNowMessageBoxResult)
     {
-        PowerOffAndExit(GetPowerOffType());
+        StopPowerOffTimerAndHandlePowerOffType(GetPowerOffType());
 
         return;
     }

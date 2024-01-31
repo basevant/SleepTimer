@@ -192,7 +192,7 @@ private:
     ) noexcept;
 
     unsigned short GetComboBoxSelectedItemData(const int comboBoxId) const;
-    void PowerOffAndExit(const PowerOffType powerOffType);
+    void StopPowerOffTimerAndHandlePowerOffType(const PowerOffType powerOffType);
     PowerOffType GetPowerOffType() const;
     static CString GetPowerOffTypeDescription(const PowerOffType powerOffType);
 
