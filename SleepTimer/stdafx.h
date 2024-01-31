@@ -8,8 +8,8 @@
 // Change these values to use different versions
 #define WINVER			_WIN32_WINNT_WINXP
 #define _WIN32_WINNT	_WIN32_WINNT_WINXP
-#define _WIN32_IE		_WIN32_IE_IE50
-#define _RICHEDIT_VER	0x0200
+#define _WIN32_IE		_WIN32_IE_IE60
+#define _RICHEDIT_VER	0x0300
 
 #include <atlbase.h>
 #include <atlapp.h>

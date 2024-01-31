@@ -38,12 +38,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Microsoft\WTL\Include;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0\atlmfc\include\;$(IncludePath)</IncludePath>
+    <IncludePath>D:\BuildTools\WTL\Include;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0\atlmfc\include\;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0\atlmfc\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0\atlmfc\include\;C:\Microsoft\WTL\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0\atlmfc\include\;D:\BuildTools\WTL\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0\atlmfc\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
