@@ -857,7 +857,7 @@ void CMainDlg::SaveUiSettings() const noexcept
 
     //  Window position
     //
-    RECT windowRect = { 0 };
+    RECT windowRect = { 0L, 0L, 0L, 0L };
 
     if (GetWindowRect(&windowRect) != FALSE)
     {
