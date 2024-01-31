@@ -53,7 +53,7 @@ BEGIN
     LTEXT           "00:00:00",IDC_LBL_TIME,209,82,30,8
     LTEXT           "?",IDC_LBL_OFF_AT,209,99,30,8
     LTEXT           "?",IDC_LBL_OFF_ELPSD,209,116,30,8
-    RTEXT           "Copyright © basevant@live.ru, 2024",IDC_LBL_EMAIL,126,204,119,8
+    RTEXT           "Copyright © basevant@live.ru, 2021",IDC_LBL_EMAIL,126,204,119,8
 END
 
 
@@ -92,8 +92,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,9
- PRODUCTVERSION 1,0,0,9
+ FILEVERSION 1,0,0,10
+ PRODUCTVERSION 1,0,0,10
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -110,12 +110,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "basevant@live.ru"
             VALUE "FileDescription", "SleepTimer"
-            VALUE "FileVersion", "1.0.0.9"
+            VALUE "FileVersion", "1.0.0.10"
             VALUE "InternalName", "SleepTimer"
-            VALUE "LegalCopyright", "Copyright 2024 © Anton Basevich"
+            VALUE "LegalCopyright", "Copyright 2021 © Anton Basevich"
             VALUE "OriginalFilename", "SleepTimer.exe"
             VALUE "ProductName", "Sleep Timer"
-            VALUE "ProductVersion", "1.0.0.9"
+            VALUE "ProductVersion", "1.0.0.10"
         END
     END
     BLOCK "VarFileInfo"
@@ -134,7 +134,6 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\SleepTimer.ico"
 
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // AFX_DIALOG_LAYOUT
@@ -144,31 +143,6 @@ IDD_MAINDLG AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
-
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE 
-BEGIN
-    "#include ""atlres.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE 
-BEGIN
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -197,6 +171,41 @@ BEGIN
     IDS_ERROR_UNABLE_TO_ADJUST_SHUTDOWN_PRIVILEGES 
                             "Не удалось получить доступ к управлению электропитанием.\nПопробуйте запустить программу от имени Администратора."
 END
+
+#endif    // Russian (Russia) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Russian (Russia) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""atlres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
 
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
