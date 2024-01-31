@@ -287,8 +287,6 @@ LRESULT CMainDlg::OnBtnTimerClick(
         m_isCautionMessageAlreadyShown = false;
     }
 
-    m_isTicking = !m_isTicking;
-
     return 0;
 }
 
@@ -637,7 +635,7 @@ unsigned short CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const
 
 void CMainDlg::StopPowerOffTimerAndHandlePowerOffType(const PowerOffType powerOffType)
 {
-    m_isTicking = false;
+    EnableUiAndStopCountdown();
 
     switch (powerOffType)
     {
@@ -760,10 +758,12 @@ void CMainDlg::DisableUiAndStartCountdown()
 void CMainDlg::StartShutdownTimer() noexcept
 {
     SetTimer(SHUTDOWN_TIMER_ID, 1000);
+    m_isTicking = true;
 }
 
 void CMainDlg::StopShutdownTimer() noexcept
 {
+    m_isTicking = false;
     KillTimer(SHUTDOWN_TIMER_ID);
 }
 
