@@ -166,6 +166,7 @@ BEGIN
     IDS_PWR_SLEEP_CAUTION           "sent into Sleep Mode"
     IDS_CAUTION_CONFIRM_EXIT 
                             "Timer is programmed to Power Off your PC.\nCancel Power Off and exit?"
+    IDS_1MIN_CAUTION_DIALOG_TITLE "1 minute"
     IDS_PWR_OPT_SHUTDOWN    "Shut down"
     IDS_PWR_OPT_HIBERNATE   "Hibernate"
     IDS_PWR_OPT_SLEEP       "Sleep"

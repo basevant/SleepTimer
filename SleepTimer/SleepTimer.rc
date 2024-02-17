@@ -157,13 +157,14 @@ BEGIN
     IDS_TIMER_IS_TICKING_SHOULD_I_STOP_IT "Таймер запущен, остановить?"
     IDS_EMPTY_TIME          "?"
     IDS_TIMER_MASK          "%H:%M:%S"
-    IDS_CAUTION_MESSAGE_BEFORE_SHUTDOWN_TEMPLATE 
+    IDS_1MIN_CAUTION_DIALOG_MESSAGE_TEMPLATE 
                             "%s менее чем через минуту. Отменить?"
     IDS_PWR_SHUTDOWN_CAUTION "Компьютер будет выключен"
     IDS_PWR_HIBERNATE_CAUTION "Компьютер будет отправлен в режим гибернации"
     IDS_PWR_SLEEP_CAUTION   "Компьютер будет отправлен в спящий режим"
     IDS_CAUTION_CONFIRM_EXIT 
                             "Отменить запланированное выключение и закрыть программу?"
+    IDS_1MIN_CAUTION_DIALOG_TITLE "1 минута"
     IDS_PWR_OPT_SHUTDOWN    "Выключить"
     IDS_PWR_OPT_HIBERNATE   "Гибернация"
     IDS_PWR_OPT_SLEEP       "Сон"

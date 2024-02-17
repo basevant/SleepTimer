@@ -514,7 +514,7 @@ void CMainDlg::ProcessShutdownOption()
 
         const auto stopShutdownCautionMessageBoxResult = MessageBox(
             stopShutdownCautionMessage,
-            CResourceManager::LoadStringFromResource(IDR_MAINFRAME),
+            ONE_MINUTE_ALERT_DIALOG_TITLE,
             MB_YESNO | MB_ICONEXCLAMATION | MB_APPLMODAL | MB_SETFOREGROUND
         );
 
@@ -635,6 +635,7 @@ unsigned short CMainDlg::GetComboBoxSelectedItemData(const int comboBoxId) const
 
 void CMainDlg::StopPowerOffTimerAndHandlePowerOffType(const PowerOffType powerOffType)
 {
+    CloseOneMinuteAlertDialogIfOpened();
     EnableUiAndStopCountdown();
 
     switch (powerOffType)
@@ -907,4 +908,25 @@ TimerType CMainDlg::GetTimerType() const noexcept
         ? TimerTypeIn
         : TimerTypeAt
         );
+}
+
+CString CMainDlg::CreteOneMinuteAlertDialogTitle() noexcept
+{
+    auto const mainDialogTitle = CResourceManager::LoadStringFromResource(IDR_MAINFRAME);
+    auto const oneMinuteTitle = CResourceManager::LoadStringFromResource(IDS_1MIN_CAUTION_DIALOG_TITLE);
+
+    return mainDialogTitle + L" - " + oneMinuteTitle;
+}
+
+void CMainDlg::CloseOneMinuteAlertDialogIfOpened() const noexcept
+{
+    auto const alertDialogHwnd = FindWindow(
+        nullptr,
+        ONE_MINUTE_ALERT_DIALOG_TITLE
+    );
+
+    if (alertDialogHwnd != nullptr)
+    {
+        ::EndDialog(alertDialogHwnd, IDNO);
+    }
 }

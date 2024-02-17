@@ -128,6 +128,8 @@ private:
 
     bool m_isCautionMessageAlreadyShown = false;
 
+    const CString ONE_MINUTE_ALERT_DIALOG_TITLE = CreteOneMinuteAlertDialogTitle();
+
     void SetTimerTypeMode(
         const TimerType& timerType
         ) noexcept;
@@ -211,4 +213,7 @@ private:
     void SaveUiSettings() const noexcept;
 
     TimerType GetTimerType() const noexcept;
+
+    static CString CreteOneMinuteAlertDialogTitle() noexcept;
+    void CloseOneMinuteAlertDialogIfOpened() const noexcept;
 };
